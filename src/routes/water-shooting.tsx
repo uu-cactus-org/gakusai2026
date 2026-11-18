@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute, stripSearchParams } from '@tanstack/react-router';
 import { z } from 'zod';
 import { FilterSelect } from '#/components/filter-select';
+import { GameBackdrop } from '#/features/water-shooting/backdrop';
 import { Button } from '#/components/ui/button';
 import {
   DIFFICULTIES,
@@ -84,6 +85,7 @@ function WaterShootingRanking() {
 
   return (
     <main className="mx-auto flex max-w-5xl flex-col gap-4 p-4 sm:p-6">
+      <GameBackdrop stage={0} />
       <header className="flex flex-wrap items-end justify-between gap-2">
         <div>
           <p className="text-sm text-muted-foreground">
@@ -91,7 +93,10 @@ function WaterShootingRanking() {
               学祭2026
             </Link>
           </p>
-          <h1 className="text-2xl font-bold">WaterShooting ランキング</h1>
+          <h1 className="font-display text-5xl leading-none text-primary">
+            WaterShooting{' '}
+            <span className="block font-sans text-xl text-foreground sm:inline">ランキング</span>
+          </h1>
         </div>
         {data && <p className="text-sm text-muted-foreground">全 {data.total} 件</p>}
       </header>
@@ -149,7 +154,11 @@ function WaterShootingRanking() {
               </Button>
             </div>
           ) : (
-            <div className={isPlaceholderData ? 'opacity-60 transition-opacity' : undefined}>
+            <div
+              className={`border-2 bg-background/80 px-3 sm:px-4 ${
+                isPlaceholderData ? 'opacity-60 transition-opacity' : ''
+              }`}
+            >
               <RankingTable runs={data.runs} />
             </div>
           )}

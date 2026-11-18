@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import type { SignageBoardProps } from '#/features/signage/types';
 import { formatPlayTime, formatScore } from '#/lib/format';
-import { difficultyLabel, playerLabel } from './labels';
+import { DifficultyLabel, PlayerLabel, rankColor } from './run-labels';
 import { rankingQueryOptions } from './ranking';
 import type { RankingRun } from './ranking';
 
@@ -37,7 +37,7 @@ export function WaterShootingSignageBoard({
   return (
     <div className="flex h-full flex-col px-[1.5em]">
       <div
-        className="grid items-end gap-x-[1em] border-b pb-[0.2em] text-muted-foreground"
+        className="grid items-end gap-x-[1em] px-[0.6em] pb-[0.1em]"
         style={{ gridTemplateColumns: COLUMNS }}
       >
         {['順位', 'スコア', '難易度', 'キャラ', '結果', '時間', 'PC'].map((heading, i) => (
@@ -47,22 +47,33 @@ export function WaterShootingSignageBoard({
         ))}
       </div>
       <ol
-        className="grid min-h-0 flex-1"
+        className="grid min-h-0 flex-1 gap-y-[0.18em] pb-[0.2em]"
         style={{ gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))` }}
       >
         {data.runs.map((run) => (
           <li
             key={run.id}
-            className="grid items-center gap-x-[1em] border-b whitespace-nowrap last:border-b-0"
+            className="grid items-center gap-x-[1em] border-[0.06em] bg-background/75 px-[0.6em] whitespace-nowrap"
             style={{ gridTemplateColumns: COLUMNS }}
           >
-            <span className="text-right font-bold tabular-nums">{run.rank}</span>
-            <span className="text-right font-bold tabular-nums">{formatScore(run.score)}</span>
-            <span className="text-[0.8em]">{difficultyLabel(run.difficulty)}</span>
-            <span className="text-[0.8em]">{playerLabel(run.player)}</span>
+            <span
+              className="text-right font-display text-[1.4em] leading-none tabular-nums"
+              style={{ color: rankColor(run.rank) }}
+            >
+              {run.rank}
+            </span>
+            <span className="text-right font-display text-[1.4em] leading-none tabular-nums">
+              {formatScore(run.score)}
+            </span>
+            <span className="text-[0.8em]">
+              <DifficultyLabel value={run.difficulty} />
+            </span>
+            <span className="text-[0.8em]">
+              <PlayerLabel value={run.player} showName={false} />
+            </span>
             <span className="text-[0.8em] tabular-nums">{resultText(run)}</span>
             <span className="text-[0.8em] tabular-nums">{formatPlayTime(run.playSeconds)}</span>
-            <span className="truncate text-[0.8em] text-muted-foreground">{run.deviceName}</span>
+            <span className="truncate text-[0.8em]">{run.deviceName}</span>
           </li>
         ))}
       </ol>

@@ -4,48 +4,46 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* shadcn/ui の配色(neutral)。デザインを決めるときは、ここの値を差し替える。 */
-:root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+@font-face {
+  font-family: 'PixelMplus12';
+  src: url('./assets/fonts/PixelMplus12-Regular.ttf') format('truetype');
+  font-display: swap;
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+@font-face {
+  font-family: 'Jersey 10';
+  src: url('./assets/fonts/Jersey10-Regular.ttf') format('truetype');
+  font-display: swap;
+}
+
+@theme {
+  /* 本文は、ゲームと同じドットの書体 */
+  --font-sans: 'PixelMplus12', ui-sans-serif, system-ui, sans-serif;
+  /* 見出しと数字 */
+  --font-display: 'Jersey 10', 'PixelMplus12', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* 配色は、ゲームのタイトル画面(Unity 側の RunSelectionMenu)に合わせている。 */
+:root {
+  --radius: 0rem;
+  --background: rgb(8 15 32);
+  --foreground: rgb(235 247 255);
+  --card: rgb(25 44 70);
+  --card-foreground: rgb(235 247 255);
+  --popover: rgb(25 44 70);
+  --popover-foreground: rgb(235 247 255);
+  --primary: rgb(255 224 121);
+  --primary-foreground: rgb(18 31 51);
+  --secondary: rgb(50 76 106);
+  --secondary-foreground: rgb(235 247 255);
+  --muted: rgb(38 60 90);
+  --muted-foreground: rgb(176 207 225);
+  --accent: rgb(50 76 106);
+  --accent-foreground: rgb(235 247 255);
+  --destructive: rgb(255 106 145);
+  --border: rgb(50 76 106);
+  --input: rgb(80 110 145);
+  --ring: rgb(108 195 255);
 }
 
 @theme inline {
@@ -97,5 +95,26 @@
   }
   to {
     transform: scaleX(1);
+  }
+}
+
+/* ドット絵を、拡大してもにじませない */
+.pixelated {
+  image-rendering: pixelated;
+}
+
+/* 背景を横に流す。画像は横につながるので、1 枚ぶん動かして最初に戻す */
+@keyframes backdrop-scroll {
+  from {
+    background-position-x: 0;
+  }
+  to {
+    background-position-x: calc(-100lvh * 16 / 9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop-layer {
+    animation: none !important;
   }
 }
