@@ -90,7 +90,7 @@ function WaterShootingRanking() {
         <div>
           <p className="text-sm text-muted-foreground">
             <Link to="/" className="hover:underline">
-              学祭2026
+              ランキング一覧
             </Link>
           </p>
           <h1 className="font-display text-5xl leading-none text-primary">
