@@ -10,7 +10,8 @@
     "generate-routes": "tsr generate",
     "build": "vp build",
     "preview": "vp preview",
-    "prepare": "vp config"
+    "prepare": "vp config",
+    "deploy": "cf deploy"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
@@ -22,6 +23,7 @@
     "tailwindcss": "^4.1.18"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "2.0.0-rc.1",
     "@tanstack/devtools-vite": "0.8.6",
     "@tanstack/router-cli": "^1.132.0",
     "@tanstack/router-plugin": "1.169.0",
@@ -29,6 +31,7 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.0.1",
+    "cf": "1.0.0-rc.1",
     "typescript": "^6.0.2",
     "vite": "catalog:",
     "vite-plus": "catalog:"
