@@ -8,6 +8,13 @@
       "when": 1795021270511,
       "tag": "0000_dapper_flatman",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1795026604297,
+      "tag": "0001_petite_amphibian",
+      "breakpoints": true
     }
   ]
 }
