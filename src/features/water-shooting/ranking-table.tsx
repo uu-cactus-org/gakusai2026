@@ -1,0 +1,119 @@
+import { Badge } from '#/components/ui/badge';
+import { Skeleton } from '#/components/ui/skeleton';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '#/components/ui/table';
+import { formatPlayTime, formatRecordedAt, formatScore } from '#/lib/format';
+import { difficultyLabel, playerLabel, resultLabel } from './labels';
+import type { RankingRun } from './ranking';
+
+function ResultBadge({ run }: { run: RankingRun }) {
+  return (
+    <Badge variant={run.result === 'cleared' ? 'default' : 'outline'}>
+      {resultLabel(run.result)}
+    </Badge>
+  );
+}
+
+const stageText = (run: RankingRun) => `${run.reachedStage} / ${run.totalStages}`;
+
+/** 幅のある画面向けの表。 */
+function WideTable({ runs }: { runs: RankingRun[] }) {
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="text-right">順位</TableHead>
+          <TableHead className="text-right">スコア</TableHead>
+          <TableHead>難易度</TableHead>
+          <TableHead>キャラ</TableHead>
+          <TableHead>結果</TableHead>
+          <TableHead>ステージ</TableHead>
+          <TableHead className="text-right">プレイ時間</TableHead>
+          <TableHead>PC</TableHead>
+          <TableHead>記録した時刻</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {runs.map((run) => (
+          <TableRow key={run.id}>
+            <TableCell className="text-right font-medium tabular-nums">{run.rank}</TableCell>
+            <TableCell className="text-right font-semibold tabular-nums">
+              {formatScore(run.score)}
+            </TableCell>
+            <TableCell>{difficultyLabel(run.difficulty)}</TableCell>
+            <TableCell>{playerLabel(run.player)}</TableCell>
+            <TableCell>
+              <ResultBadge run={run} />
+            </TableCell>
+            <TableCell className="tabular-nums">{stageText(run)}</TableCell>
+            <TableCell className="text-right tabular-nums">
+              {formatPlayTime(run.playSeconds)}
+            </TableCell>
+            <TableCell>{run.deviceName}</TableCell>
+            <TableCell className="text-muted-foreground tabular-nums">
+              {formatRecordedAt(run.createdAt)}
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
+/** スマホ向け。列を並べると横にはみ出すので、1 件を 2 行にまとめる。 */
+function NarrowList({ runs }: { runs: RankingRun[] }) {
+  return (
+    <ol className="divide-y">
+      {runs.map((run) => (
+        <li key={run.id} className="flex items-center gap-3 py-3">
+          <span className="w-9 shrink-0 text-right text-lg font-semibold tabular-nums">
+            {run.rank}
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-lg font-semibold tabular-nums">{formatScore(run.score)}</span>
+              <ResultBadge run={run} />
+            </div>
+            <div className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-muted-foreground">
+              <span>{difficultyLabel(run.difficulty)}</span>
+              <span>キャラ {playerLabel(run.player)}</span>
+              <span className="tabular-nums">ステージ {stageText(run)}</span>
+              <span className="tabular-nums">{formatPlayTime(run.playSeconds)}</span>
+              <span>{run.deviceName}</span>
+              <span className="tabular-nums">{formatRecordedAt(run.createdAt)}</span>
+            </div>
+          </div>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+export function RankingTable({ runs }: { runs: RankingRun[] }) {
+  return (
+    <>
+      <div className="hidden md:block">
+        <WideTable runs={runs} />
+      </div>
+      <div className="md:hidden">
+        <NarrowList runs={runs} />
+      </div>
+    </>
+  );
+}
+
+export function RankingTableSkeleton({ rows }: { rows: number }) {
+  return (
+    <div className="flex flex-col gap-2" aria-busy="true" aria-label="読み込み中">
+      {Array.from({ length: rows }, (_, i) => (
+        <Skeleton key={i} className="h-10 w-full" />
+      ))}
+    </div>
+  );
+}

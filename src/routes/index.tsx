@@ -1,14 +1,27 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { Link, createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/')({ component: Home });
 
 function Home() {
   return (
-    <div className="p-8">
-      <h1 className="text-4xl font-bold">Welcome to TanStack Start</h1>
-      <p className="mt-4 text-lg">
-        Edit <code>src/routes/index.tsx</code> to get started.
-      </p>
-    </div>
+    <main className="mx-auto flex max-w-2xl flex-col gap-6 p-4 sm:p-6">
+      <h1 className="text-2xl font-bold">学祭2026 ランキング</h1>
+      <ul className="flex flex-col gap-3">
+        <li>
+          <Link to="/water-shooting" className="block rounded-lg border p-4 hover:bg-muted">
+            <span className="block font-semibold">WaterShooting</span>
+            <span className="text-sm text-muted-foreground">スコアランキングを見る</span>
+          </Link>
+        </li>
+        <li>
+          <Link to="/signage" className="block rounded-lg border p-4 hover:bg-muted">
+            <span className="block font-semibold">サイネージ表示</span>
+            <span className="text-sm text-muted-foreground">
+              会場のモニター向け。全画面で、ランキングを自動で送ります
+            </span>
+          </Link>
+        </li>
+      </ul>
+    </main>
   );
 }

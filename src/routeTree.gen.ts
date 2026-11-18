@@ -10,33 +10,53 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SignageRouteImport } from './routes/signage'
+import { Route as WaterShootingRouteImport } from './routes/water-shooting'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SignageRoute = SignageRouteImport.update({
+  id: '/signage',
+  path: '/signage',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WaterShootingRoute = WaterShootingRouteImport.update({
+  id: '/water-shooting',
+  path: '/water-shooting',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/signage': typeof SignageRoute
+  '/water-shooting': typeof WaterShootingRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/signage': typeof SignageRoute
+  '/water-shooting': typeof WaterShootingRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/signage': typeof SignageRoute
+  '/water-shooting': typeof WaterShootingRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/signage' | '/water-shooting'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/signage' | '/water-shooting'
+  id: '__root__' | '/' | '/signage' | '/water-shooting'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SignageRoute: typeof SignageRoute
+  WaterShootingRoute: typeof WaterShootingRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +68,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/signage': {
+      id: '/signage'
+      path: '/signage'
+      fullPath: '/signage'
+      preLoaderRoute: typeof SignageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/water-shooting': {
+      id: '/water-shooting'
+      path: '/water-shooting'
+      fullPath: '/water-shooting'
+      preLoaderRoute: typeof WaterShootingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SignageRoute: SignageRoute,
+  WaterShootingRoute: WaterShootingRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

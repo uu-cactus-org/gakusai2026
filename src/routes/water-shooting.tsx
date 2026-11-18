@@ -1,0 +1,180 @@
+import { useQuery } from '@tanstack/react-query';
+import { Link, createFileRoute, stripSearchParams } from '@tanstack/react-router';
+import { z } from 'zod';
+import { FilterSelect } from '#/components/filter-select';
+import { Button } from '#/components/ui/button';
+import {
+  DIFFICULTIES,
+  PLAYERS,
+  RESULTS,
+  difficultyLabel,
+  playerLabel,
+  resultLabel,
+} from '#/features/water-shooting/labels';
+import { SORT_KEYS, rankingQueryOptions } from '#/features/water-shooting/ranking';
+import type { SortKey } from '#/features/water-shooting/ranking';
+import { RankingTable, RankingTableSkeleton } from '#/features/water-shooting/ranking-table';
+
+const PAGE_SIZE = 20;
+
+// URL に置く、並べ替え・絞り込み・ページ。読めない値は既定に戻す。
+const searchSchema = z.object({
+  sort: z.enum(SORT_KEYS).default('score').catch('score'),
+  difficulty: z.enum(DIFFICULTIES).optional().catch(undefined),
+  player: z.enum(PLAYERS).optional().catch(undefined),
+  result: z.enum(RESULTS).optional().catch(undefined),
+  page: z.coerce.number().int().min(1).default(1).catch(1),
+});
+
+type Search = z.infer<typeof searchSchema>;
+
+const DEFAULT_SEARCH = { sort: 'score', page: 1 } as const satisfies Partial<Search>;
+
+export const Route = createFileRoute('/water-shooting')({
+  validateSearch: searchSchema,
+  // 既定の値は URL に出さない
+  search: { middlewares: [stripSearchParams(DEFAULT_SEARCH)] },
+  component: WaterShootingRanking,
+});
+
+const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+  { value: 'score', label: 'スコアが高い順' },
+  { value: 'playSeconds', label: 'プレイ時間が短い順' },
+  { value: 'reachedStage', label: '進んだステージ順' },
+  { value: 'createdAt', label: '新しい順' },
+];
+
+// 絞り込みを「付けない」を表す値
+const ALL = 'all';
+
+function withAll<T extends string>(values: readonly T[], label: (value: T) => string) {
+  const options: { value: T | typeof ALL; label: string }[] = [{ value: ALL, label: 'すべて' }];
+  for (const value of values) options.push({ value, label: label(value) });
+  return options;
+}
+
+const DIFFICULTY_OPTIONS = withAll(DIFFICULTIES, difficultyLabel);
+const PLAYER_OPTIONS = withAll(PLAYERS, playerLabel);
+const RESULT_OPTIONS = withAll(RESULTS, resultLabel);
+
+const fromAll = <T extends string>(value: T | typeof ALL) =>
+  value === ALL ? undefined : (value as T);
+
+function WaterShootingRanking() {
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+
+  const { data, isPending, isError, isPlaceholderData, refetch } = useQuery(
+    rankingQueryOptions({
+      limit: PAGE_SIZE,
+      offset: (search.page - 1) * PAGE_SIZE,
+      sort: search.sort,
+      difficulty: search.difficulty,
+      player: search.player,
+      result: search.result,
+    }),
+  );
+
+  // 並べ替えや絞り込みを変えたら、1 ページ目に戻す
+  const setFilter = (patch: Partial<Search>) =>
+    navigate({ search: (prev) => ({ ...prev, ...patch, page: 1 }), replace: true });
+  const setPage = (page: number) => navigate({ search: (prev) => ({ ...prev, page }) });
+
+  const pageCount = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
+
+  return (
+    <main className="mx-auto flex max-w-5xl flex-col gap-4 p-4 sm:p-6">
+      <header className="flex flex-wrap items-end justify-between gap-2">
+        <div>
+          <p className="text-sm text-muted-foreground">
+            <Link to="/" className="hover:underline">
+              学祭2026
+            </Link>
+          </p>
+          <h1 className="text-2xl font-bold">WaterShooting ランキング</h1>
+        </div>
+        {data && <p className="text-sm text-muted-foreground">全 {data.total} 件</p>}
+      </header>
+
+      <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
+        <FilterSelect
+          label="並べ替え"
+          value={search.sort}
+          options={SORT_OPTIONS}
+          onChange={(sort) => setFilter({ sort })}
+        />
+        <FilterSelect
+          label="難易度"
+          value={search.difficulty ?? ALL}
+          options={DIFFICULTY_OPTIONS}
+          onChange={(value) => setFilter({ difficulty: fromAll(value) })}
+        />
+        <FilterSelect
+          label="キャラ"
+          value={search.player ?? ALL}
+          options={PLAYER_OPTIONS}
+          onChange={(value) => setFilter({ player: fromAll(value) })}
+        />
+        <FilterSelect
+          label="結果"
+          value={search.result ?? ALL}
+          options={RESULT_OPTIONS}
+          onChange={(value) => setFilter({ result: fromAll(value) })}
+        />
+      </div>
+
+      {isPending ? (
+        <RankingTableSkeleton rows={10} />
+      ) : !data ? (
+        <div className="flex flex-col items-start gap-3 py-8">
+          <p>ランキングを読み込めませんでした。</p>
+          <Button variant="outline" onClick={() => refetch()}>
+            もう一度読み込む
+          </Button>
+        </div>
+      ) : (
+        <>
+          {isError && (
+            <p className="text-sm text-destructive">
+              最新の記録を取得できませんでした。前回の内容を表示しています。
+            </p>
+          )}
+          {data.total === 0 ? (
+            <p className="py-8 text-muted-foreground">条件に合う記録は、まだありません。</p>
+          ) : data.runs.length === 0 ? (
+            <div className="flex flex-col items-start gap-3 py-8">
+              <p className="text-muted-foreground">このページには記録がありません。</p>
+              <Button variant="outline" onClick={() => setPage(1)}>
+                最初のページへ
+              </Button>
+            </div>
+          ) : (
+            <div className={isPlaceholderData ? 'opacity-60 transition-opacity' : undefined}>
+              <RankingTable runs={data.runs} />
+            </div>
+          )}
+
+          <nav className="flex items-center justify-between gap-3" aria-label="ページ送り">
+            <Button
+              variant="outline"
+              disabled={search.page <= 1}
+              onClick={() => setPage(search.page - 1)}
+            >
+              前へ
+            </Button>
+            <span className="text-sm text-muted-foreground tabular-nums">
+              {search.page} / {pageCount} ページ
+            </span>
+            <Button
+              variant="outline"
+              disabled={search.page >= pageCount}
+              onClick={() => setPage(search.page + 1)}
+            >
+              次へ
+            </Button>
+          </nav>
+        </>
+      )}
+    </main>
+  );
+}
