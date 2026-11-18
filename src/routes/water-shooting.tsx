@@ -88,7 +88,7 @@ function WaterShootingRanking() {
         <div>
           <p className="text-sm text-muted-foreground">
             <Link to="/" className="hover:underline">
-              学祭2026
+              ランキング一覧
             </Link>
           </p>
           <h1 className="text-2xl font-bold">WaterShooting ランキング</h1>
