@@ -24,6 +24,7 @@
 | `POST /api/devices`              | PC を登録する  | `GAME_TOKEN`      |
 | `GET /api/devices?ids=<ID>,<ID>` | 表示名を引く   | なし              |
 | `GET /api/devices`               | 登録済みの全件 | なし              |
+| `GET /api/admin/devices`         | 全件(管理用)   | Cloudflare Access |
 | `PATCH /api/admin/devices/:id`   | 表示名を変える | Cloudflare Access |
 
 ### `POST /api/devices`
@@ -43,6 +44,11 @@
 - `ids` を付けると、聞かれた順に返します。1 回に 100 件までです。
 - 登録されていない ID は、応答から省きます。この API は登録をしません。
 - ID にカンマが入っていると、`ids` では引けません。
+
+### `GET /api/admin/devices`
+
+管理画面が使います。応答は `{ "devices": [{ "id": "...", "name": "PC3", "createdAt": "...", "runCount": 12 }] }` です。
+`runCount` は、その PC からの WaterShooting の記録の数です(テストの記録も数えます)。
 
 ### `PATCH /api/admin/devices/:id`
 

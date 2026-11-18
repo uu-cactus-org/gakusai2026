@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as SignageRouteImport } from './routes/signage'
 import { Route as WaterShootingRouteImport } from './routes/water-shooting'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignageRoute = SignageRouteImport.update({
@@ -31,30 +37,34 @@ const WaterShootingRoute = WaterShootingRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/signage': typeof SignageRoute
   '/water-shooting': typeof WaterShootingRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/signage': typeof SignageRoute
   '/water-shooting': typeof WaterShootingRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/signage': typeof SignageRoute
   '/water-shooting': typeof WaterShootingRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/signage' | '/water-shooting'
+  fullPaths: '/' | '/admin' | '/signage' | '/water-shooting'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/signage' | '/water-shooting'
-  id: '__root__' | '/' | '/signage' | '/water-shooting'
+  to: '/' | '/admin' | '/signage' | '/water-shooting'
+  id: '__root__' | '/' | '/admin' | '/signage' | '/water-shooting'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   SignageRoute: typeof SignageRoute
   WaterShootingRoute: typeof WaterShootingRoute
 }
@@ -66,6 +76,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signage': {
@@ -87,6 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   SignageRoute: SignageRoute,
   WaterShootingRoute: WaterShootingRoute,
 }

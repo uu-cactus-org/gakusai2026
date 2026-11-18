@@ -20,6 +20,8 @@ PC の ID と表示名は [devices.md](devices.md) に、ランキングの画�
 | ------------------------------------------- | ---------------- | ----------------- |
 | `POST /api/water-shooting/runs`             | プレイを記録する | `GAME_TOKEN`      |
 | `GET /api/water-shooting/ranking`           | ランキング       | なし              |
+| `GET /api/admin/water-shooting/runs`        | 記録の一覧(管理) | Cloudflare Access |
+| `PATCH /api/admin/water-shooting/runs/:id`  | テスト扱いの切替 | Cloudflare Access |
 | `DELETE /api/admin/water-shooting/runs/:id` | 記録を 1 件消す  | Cloudflare Access |
 
 ### `POST /api/water-shooting/runs`
@@ -101,6 +103,27 @@ PC の ID と表示名は [devices.md](devices.md) に、ランキングの画�
 ```
 
 `rank` は、絞り込んだ記録の中での、スコアの順位です。並べ替えやページ送りをしても変わりません。たとえば新しい順に並べても、各行にはスコアで何位かが入ります。絞り込みを付けたときは、その中での順位になります。
+
+### `GET /api/admin/water-shooting/runs`
+
+管理画面が使います。ランキングと違い、テストの記録も返し、各行に `runId` と `deviceId` が付きます。`rank` は付きません。
+
+| 引数       | 既定        | 内容                                                                   |
+| ---------- | ----------- | ---------------------------------------------------------------------- |
+| `limit`    | 50          | 件数。200 まで                                                         |
+| `offset`   | 0           | 何件目から返すか                                                       |
+| `sort`     | `createdAt` | `createdAt` か `score`                                                 |
+| `order`    | `desc`      | `asc` か `desc`                                                        |
+| `test`     | `all`       | `all`(混ぜる)、`only`(テストだけ)、`exclude`(ランキングに出るものだけ) |
+| `deviceId` | なし        | その PC の記録だけに絞る                                               |
+| `result`   | なし        | `cleared` か `game_over` だけに絞る                                    |
+
+応答は `{ "total": 45, "runs": [...] }` です。
+
+### `PATCH /api/admin/water-shooting/runs/:id`
+
+本文は `{ "test": true }` です。`true` にすると、その記録はランキングに出なくなります。`false` で戻せます。
+消すのと違って元に戻せるので、疑わしい記録はまずこちらで外します。応答は `{ "id": 12, "test": true }` です。
 
 ### `DELETE /api/admin/water-shooting/runs/:id`
 
