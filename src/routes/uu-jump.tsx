@@ -2,9 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute, stripSearchParams } from '@tanstack/react-router';
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { z } from 'zod';
-import titleImage from '#/assets/uu-jump/menu_bg.png';
 import { LastUpdated } from '#/components/last-updated';
 import { Button } from '#/components/ui/button';
+import { UuJumpBackdrop } from '#/features/uu-jump/backdrop';
 import { Cactakun } from '#/features/uu-jump/cactakun';
 import { mapsQueryOptions, rankingQueryOptions } from '#/features/uu-jump/ranking';
 import { UuJumpRankingTable } from '#/features/uu-jump/ranking-table';
@@ -45,50 +45,42 @@ function UuJumpRanking() {
 
   return (
     <main className="mx-auto flex max-w-5xl flex-col gap-4 p-4 sm:p-6">
-      <div>
+      <UuJumpBackdrop />
+      <header className="flex flex-col items-start gap-3">
         <Button variant="outline" size="sm" render={<Link to="/" />} nativeButton={false}>
           <ArrowLeft aria-hidden="true" />
           一覧に戻る
         </Button>
-      </div>
-
-      {/* ゲームのタイトル画面の絵。題名(UU-JUMP)は絵の中にあるので、文字の見出しは読み上げ用だけ */}
-      <header>
-        <h1 className="sr-only">UU-JUMP ランキング</h1>
-        <img
-          src={titleImage}
-          alt=""
-          width={681}
-          height={383}
-          className="pixelated mx-auto block h-auto max-h-[50vh] w-auto max-w-full border-4 border-foreground"
-        />
+        <div className="flex items-end gap-3">
+          <Cactakun size={64} />
+          <h1 className="uu-jump-title text-5xl leading-none sm:text-6xl">
+            UU-JUMP <span className="block text-2xl sm:inline sm:text-3xl">ランキング</span>
+          </h1>
+        </div>
       </header>
 
-      <section className="flex flex-col gap-3 border-4 border-foreground bg-card px-3 py-4 sm:px-5">
-        <div className="flex flex-wrap items-center gap-3">
-          <Cactakun size={48} />
-          <h2 className="text-2xl font-bold whitespace-nowrap">タイムランキング</h2>
+      <section className="flex flex-col gap-3 border-4 border-foreground bg-card/90 px-3 py-4 sm:px-5">
+        {/* マップの切り替え。ランキングはマップごと */}
+        <div className="flex flex-wrap items-center gap-2">
+          {maps.data && maps.data.length > 0 && (
+            <div className="flex flex-wrap gap-2" role="group" aria-label="マップ">
+              {maps.data.map((map) => (
+                <Button
+                  key={map.name}
+                  variant={map.name === selectedMap ? 'default' : 'outline'}
+                  size="sm"
+                  aria-pressed={map.name === selectedMap}
+                  onClick={() => navigate({ search: { map: map.name, page: 1 }, replace: true })}
+                >
+                  {map.name}
+                </Button>
+              ))}
+            </div>
+          )}
           {data && selectedMap && (
             <p className="ml-auto text-sm text-muted-foreground">全 {data.total} 件</p>
           )}
         </div>
-
-        {/* マップの切り替え。ランキングはマップごと */}
-        {maps.data && maps.data.length > 0 && (
-          <div className="flex flex-wrap gap-2" role="group" aria-label="マップ">
-            {maps.data.map((map) => (
-              <Button
-                key={map.name}
-                variant={map.name === selectedMap ? 'default' : 'outline'}
-                size="sm"
-                aria-pressed={map.name === selectedMap}
-                onClick={() => navigate({ search: { map: map.name, page: 1 }, replace: true })}
-              >
-                {map.name}
-              </Button>
-            ))}
-          </div>
-        )}
 
         {maps.isPending ? (
           <p className="py-8 text-center text-muted-foreground">読み込んでいます…</p>
@@ -159,8 +151,8 @@ function UuJumpRanking() {
             </nav>
           </>
         )}
+        <LastUpdated updatedAt={dataUpdatedAt} />
       </section>
-      <LastUpdated updatedAt={dataUpdatedAt} />
     </main>
   );
 }

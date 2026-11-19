@@ -105,7 +105,7 @@
 
 /*
  * UU-JUMP の見た目。明るい配色。色は、ゲームのタイトル画面の絵(menu_bg.png)から拾っている。
- * 空の青を地に、絵の縁取りの焦げ茶を文字と枠に使う。
+ * 校舎の絵を背景に敷き(UuJumpBackdrop)、絵の縁取りの焦げ茶を文字と枠に使う。
  */
 .theme-uu-jump {
   /* ゲームの画面と同じドットの書体 */
@@ -114,7 +114,8 @@
   font-family: var(--font-sans);
 
   --radius: 0rem;
-  --background: rgb(96 208 252);
+  /* 絵の上に載るボタンの地。絵が読み込まれるまでの画面の色でもある */
+  --background: rgb(250 246 236);
   --foreground: rgb(52 46 36);
   --card: rgb(255 255 255);
   --card-foreground: rgb(52 46 36);
@@ -199,6 +200,22 @@
   to {
     background-position-x: calc(-100lvh * 16 / 9);
   }
+}
+
+/* UU-JUMP の題字。ゲームのタイトル画面と同じ、黄色い字に焦げ茶の縁取り */
+.uu-jump-title {
+  color: rgb(249 255 0);
+  --edge: rgb(52 46 36);
+  text-shadow:
+    3px 0 var(--edge),
+    -3px 0 var(--edge),
+    0 3px var(--edge),
+    0 -3px var(--edge),
+    3px 3px var(--edge),
+    -3px 3px var(--edge),
+    3px -3px var(--edge),
+    -3px -3px var(--edge),
+    0 6px var(--edge);
 }
 
 /* UU-JUMP のサボテン。横に 4 コマ並んだ絵を、1 コマずつ送る */
