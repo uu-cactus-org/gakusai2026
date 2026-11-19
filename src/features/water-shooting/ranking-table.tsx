@@ -9,7 +9,8 @@ import {
   TableRow,
 } from '#/components/ui/table';
 import { formatPlayTime, formatRecordedAt, formatScore } from '#/lib/format';
-import { difficultyLabel, playerLabel, resultLabel } from './labels';
+import { resultLabel } from './labels';
+import { DifficultyLabel, PlayerLabel, rankColor } from './run-labels';
 import type { RankingRun } from './ranking';
 
 function ResultBadge({ run }: { run: RankingRun }) {
@@ -42,12 +43,21 @@ function WideTable({ runs }: { runs: RankingRun[] }) {
       <TableBody>
         {runs.map((run) => (
           <TableRow key={run.id}>
-            <TableCell className="text-right font-medium tabular-nums">{run.rank}</TableCell>
-            <TableCell className="text-right font-semibold tabular-nums">
+            <TableCell
+              className="text-right font-display text-xl tabular-nums"
+              style={{ color: rankColor(run.rank) }}
+            >
+              {run.rank}
+            </TableCell>
+            <TableCell className="text-right font-display text-xl tabular-nums">
               {formatScore(run.score)}
             </TableCell>
-            <TableCell>{difficultyLabel(run.difficulty)}</TableCell>
-            <TableCell>{playerLabel(run.player)}</TableCell>
+            <TableCell>
+              <DifficultyLabel value={run.difficulty} />
+            </TableCell>
+            <TableCell>
+              <PlayerLabel value={run.player} />
+            </TableCell>
             <TableCell>
               <ResultBadge run={run} />
             </TableCell>
@@ -72,17 +82,20 @@ function NarrowList({ runs }: { runs: RankingRun[] }) {
     <ol className="divide-y">
       {runs.map((run) => (
         <li key={run.id} className="flex items-center gap-3 py-3">
-          <span className="w-9 shrink-0 text-right text-lg font-semibold tabular-nums">
+          <span
+            className="w-9 shrink-0 text-right font-display text-2xl tabular-nums"
+            style={{ color: rankColor(run.rank) }}
+          >
             {run.rank}
           </span>
           <div className="min-w-0 flex-1">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-lg font-semibold tabular-nums">{formatScore(run.score)}</span>
+              <span className="font-display text-2xl tabular-nums">{formatScore(run.score)}</span>
               <ResultBadge run={run} />
             </div>
-            <div className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-muted-foreground">
-              <span>{difficultyLabel(run.difficulty)}</span>
-              <span>キャラ {playerLabel(run.player)}</span>
+            <div className="mt-0.5 flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground">
+              <DifficultyLabel value={run.difficulty} />
+              <PlayerLabel value={run.player} />
               <span className="tabular-nums">ステージ {stageText(run)}</span>
               <span className="tabular-nums">{formatPlayTime(run.playSeconds)}</span>
               <span>{run.deviceName}</span>

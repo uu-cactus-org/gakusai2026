@@ -3,6 +3,7 @@ import { useCallback, useEffect, useEffectEvent, useState } from 'react';
 import { z } from 'zod';
 import { Button } from '#/components/ui/button';
 import { SIGNAGE_BOARDS } from '#/features/signage/boards';
+import { GameBackdrop } from '#/features/water-shooting/backdrop';
 
 // 会場のモニターごとに URL で変えられる設定。読めない値は既定に戻す。
 const searchSchema = z.object({
@@ -143,15 +144,18 @@ function Signage() {
 
   return (
     <div
-      className={`dark fixed inset-0 flex flex-col overflow-hidden bg-background text-foreground ${
+      className={`dark fixed inset-0 flex flex-col overflow-hidden text-foreground ${
         isFullscreen ? 'cursor-none' : ''
       }`}
       // 文字の大きさを画面に合わせる。行数が増えたら、その分だけ小さくする
       style={{ fontSize: `min(${45 / rows}vh, 2vw)` }}
     >
-      <header className="flex items-baseline gap-[0.8em] px-[1.5em] pt-[0.6em] pb-[0.3em]">
-        <h1 className="text-[1.5em] font-bold">{board.title}</h1>
-        <p className="text-[0.9em] text-muted-foreground">{board.subtitle}</p>
+      {/* ページを送るたびに、次のステージの背景へ切り替える */}
+      <GameBackdrop stage={slide.board + page} scroll dim={0.55} />
+
+      <header className="flex items-baseline gap-[0.8em] px-[1.5em] pt-[0.4em] pb-[0.2em]">
+        <h1 className="font-display text-[2.2em] leading-none text-primary">{board.title}</h1>
+        <p className="text-[0.9em]">{board.subtitle}</p>
         {paused && <p className="text-[0.7em] text-muted-foreground">一時停止中</p>}
       </header>
 
@@ -171,17 +175,14 @@ function Signage() {
           aria-label={`${page + 1} / ${pageCount} ページ`}
         >
           {Array.from({ length: pageCount }, (_, i) => (
-            <span
-              key={i}
-              className={`size-[0.35em] rounded-full ${i === page ? 'bg-foreground' : 'bg-muted'}`}
-            />
+            <span key={i} className={`size-[0.35em] ${i === page ? 'bg-primary' : 'bg-muted'}`} />
           ))}
         </div>
         {/* 次のページへ送るまでの残り。key を変えて、送るたびに最初から動かす */}
         <div className="h-[0.15em] bg-muted">
           <div
             key={`${slide.board}-${slide.page}`}
-            className="h-full origin-left bg-foreground"
+            className="h-full origin-left bg-primary"
             style={{
               animation: `signage-progress ${interval}s linear forwards`,
               animationPlayState: paused ? 'paused' : 'running',
