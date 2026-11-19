@@ -93,7 +93,7 @@ function WaterShootingRanking() {
   const pageCount = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
 
   return (
-    <main className="mx-auto flex max-w-6xl flex-col gap-4 p-4 sm:p-6">
+    <main className="mx-auto flex max-w-5xl flex-col gap-4 p-4 sm:p-6">
       <RotatingWaterShootingBackdrop>
         <DriftingPlayers />
       </RotatingWaterShootingBackdrop>

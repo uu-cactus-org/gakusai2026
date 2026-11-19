@@ -22,29 +22,34 @@ export function UuJumpRankingTable({ runs }: { runs: UuJumpRun[] }) {
       <TableHeader>
         <TableRow className="border-0 bg-primary hover:bg-primary">
           <TableHead className={`${HEAD} text-center`}>順位</TableHead>
-          <TableHead className={`${HEAD} text-right`}>タイム</TableHead>
-          <TableHead className={HEAD}>ジャンプ</TableHead>
-          <TableHead className={HEAD}>PC</TableHead>
-          <TableHead className={`${HEAD} hidden sm:table-cell`}>記録した時刻</TableHead>
+          <TableHead className={`${HEAD} text-center`}>タイム</TableHead>
+          <TableHead className={`${HEAD} text-center`}>ジャンプ</TableHead>
+          <TableHead className={`${HEAD} text-center`}>PC</TableHead>
+          <TableHead className={`${HEAD} hidden text-center sm:table-cell`}>記録した時刻</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {runs.map((run) => (
-          <TableRow key={run.id} className="h-11" style={{ backgroundColor: medalTint(run.rank) }}>
+          <TableRow
+            key={run.id}
+            className="h-11 border-border/50"
+            style={{ backgroundColor: medalTint(run.rank) }}
+          >
             <TableCell className="text-center text-2xl leading-none">
               <RankBadge rank={run.rank} />
             </TableCell>
-            <TableCell className="text-right font-digits text-2xl leading-none tabular-nums">
+            <TableCell className="text-center font-digits text-2xl leading-none tabular-nums">
               {formatClearTime(run.clearSeconds)}
             </TableCell>
             <TableCell>
-              <span className="flex items-center gap-1 tabular-nums">
+              {/* 絵と回数をまとめて、列の中央に寄せる */}
+              <span className="flex items-center justify-center gap-1 tabular-nums">
                 <Cactakun still className="size-[2em]" />
                 {run.jumpCount} 回
               </span>
             </TableCell>
-            <TableCell>{run.deviceName}</TableCell>
-            <TableCell className="hidden text-muted-foreground tabular-nums sm:table-cell">
+            <TableCell className="text-center">{run.deviceName}</TableCell>
+            <TableCell className="hidden text-center text-muted-foreground tabular-nums sm:table-cell">
               {formatRecordedAt(run.createdAt)}
             </TableCell>
           </TableRow>

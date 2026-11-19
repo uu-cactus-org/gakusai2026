@@ -22,6 +22,12 @@ const RANK_COLORS: Record<number, string> = {
 
 export const rankColor = (rank: number): string | undefined => RANK_COLORS[rank];
 
+/** 1〜3 位の行に敷く、順位の色を薄めた地。4 位からは何も敷かない。 */
+export const rankTint = (rank: number): string | undefined => {
+  const color = rankColor(rank);
+  return color && `color-mix(in srgb, ${color} 14%, transparent)`;
+};
+
 /** 難易度。ゲームと同じ色を付ける。知らない難易度は、色なしで出す。 */
 export function DifficultyLabel({ value }: { value: string }) {
   return <span style={{ color: DIFFICULTY_COLORS[value] }}>{difficultyLabel(value)}</span>;
@@ -32,16 +38,19 @@ export function PlayerLabel({
   value,
   showName = true,
   nameClassName,
+  className = '',
 }: {
   value: string;
   showName?: boolean;
+  /** 絵と名前をまとめた箱に付けるクラス。列の中で中央に寄せるときなどに使う */
+  className?: string;
   /** 絵に添える名前に付けるクラス。画面の広さで出し分けるときに使う。絵が無いキャラの名前には付けない */
   nameClassName?: string;
 }) {
   const sprite = PLAYER_SPRITES[value];
   return (
     // inline-flex だと絵の下端が文字のベースラインに乗って、行の中で上に寄る。flex にして箱ごと中央に置かせる
-    <span className="flex items-center gap-[0.3em]">
+    <span className={`flex items-center gap-[0.3em] ${className}`}>
       {sprite && <img src={sprite} alt="" className="pixelated size-[2em] shrink-0" />}
       {sprite
         ? showName && <span className={nameClassName}>{playerLabel(value)}</span>

@@ -66,8 +66,9 @@ export function UuJumpSignageBoard({ page, rows, onPageCount }: SignageBoardProp
         {/* マップ名は、見出しの行の右端の上に載せる。行を 1 つ使わないので、その分だけ表を上へ広げられる。
             右端の列の見出しに重ならないよう、見出しの字の上まで持ち上げて、題字の右の空きへはみ出させる */}
         <p className="absolute right-0 bottom-[1em] text-[1.2em] leading-none">{slot.name}</p>
-        {['順位', 'タイム', 'ジャンプ', 'PC', '記録した時刻'].map((heading, i) => (
-          <span key={heading} className={i < 3 ? 'text-right text-[0.5em]' : 'text-[0.5em]'}>
+        {/* どの列も中央に寄せる。タイムも桁数が決まっているので、中央に寄せても桁がそろう */}
+        {['順位', 'タイム', 'ジャンプ', 'PC', '記録した時刻'].map((heading) => (
+          <span key={heading} className="text-center text-[0.5em]">
             {heading}
           </span>
         ))}
@@ -88,19 +89,19 @@ export function UuJumpSignageBoard({ page, rows, onPageCount }: SignageBoardProp
                 backgroundImage: tint && `linear-gradient(${tint}, ${tint})`,
               }}
             >
-              <span className="text-right text-[1.3em] leading-none">
+              <span className="text-center text-[1.3em] leading-none">
                 <RankBadge rank={run.rank} />
               </span>
-              <span className="text-right font-digits text-[1.3em] leading-none tabular-nums">
+              <span className="text-center font-digits text-[1.3em] leading-none tabular-nums">
                 {formatClearTime(run.clearSeconds)}
               </span>
-              <span className="flex items-center justify-end gap-[0.3em] text-[0.8em] tabular-nums">
+              <span className="flex items-center justify-center gap-[0.3em] text-[0.8em] tabular-nums">
                 <Cactakun still className="size-[1.4em]" />
                 {/* 数字は 3 桁ぶんの幅を取って右にそろえる。2 桁と 3 桁が混ざっても、サボテンの位置がずれない */}
                 <span className="min-w-[1.5em] text-right">{run.jumpCount}</span>回
               </span>
-              <span className="truncate text-[0.8em]">{run.deviceName}</span>
-              <span className="text-[0.7em] text-muted-foreground tabular-nums">
+              <span className="truncate text-center text-[0.8em]">{run.deviceName}</span>
+              <span className="text-center text-[0.7em] text-muted-foreground tabular-nums">
                 {formatRecordedAt(run.createdAt)}
               </span>
             </li>

@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { LastUpdated } from '#/components/last-updated';
 import type { SignageBoardProps } from '#/features/signage/types';
 import { formatPlayTime, formatRecordedAt, formatScore } from '#/lib/format';
-import { DifficultyLabel, PlayerLabel, rankColor } from './run-labels';
+import { DifficultyLabel, PlayerLabel, rankColor, rankTint } from './run-labels';
 import { rankingQueryOptions } from './ranking';
 import type { WaterShootingRun } from './ranking';
 
@@ -54,7 +54,11 @@ export function WaterShootingSignageBoard({
       >
         {['順位', 'スコア', '難易度', 'キャラ', '結果', 'タイム', 'PC', '記録した時刻'].map(
           (heading, i) => (
-            <span key={heading} className={i < 2 ? 'text-right text-[0.5em]' : 'text-[0.5em]'}>
+            // スコアだけ右にそろえて、ほかは中央に寄せる(ランキングの画面の表と同じ)
+            <span
+              key={heading}
+              className={i === 1 ? 'text-right text-[0.5em]' : 'text-center text-[0.5em]'}
+            >
               {heading}
             </span>
           ),
@@ -64,40 +68,53 @@ export function WaterShootingSignageBoard({
         className="grid min-h-0 flex-1 gap-y-[0.18em] pb-[0.2em]"
         style={{ gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))` }}
       >
-        {data.runs.map((run) => (
-          <li
-            key={run.id}
-            className="grid items-center justify-between gap-x-[0.6em] border-[0.06em] bg-background/75 px-[0.6em] whitespace-nowrap"
-            style={{ gridTemplateColumns: COLUMNS }}
-          >
-            <span
-              className="text-right font-display text-[1.4em] leading-none tabular-nums"
-              style={{ color: rankColor(run.rank) }}
+        {data.runs.map((run) => {
+          const tint = rankTint(run.rank);
+          return (
+            <li
+              key={run.id}
+              className="grid items-center justify-between gap-x-[0.6em] border-[0.06em] bg-background/75 px-[0.6em] whitespace-nowrap"
+              style={{
+                gridTemplateColumns: COLUMNS,
+                // 1〜3 位は、暗い地の上に、順位の色を薄く重ねる(地の色を差し替えると、背景の絵が透けすぎる)
+                backgroundImage: tint && `linear-gradient(${tint}, ${tint})`,
+              }}
             >
-              {run.rank}
-            </span>
-            <span className="text-right font-display text-[1.4em] leading-none tabular-nums">
-              {formatScore(run.score)}
-            </span>
-            <span className="text-[0.8em]">
-              <DifficultyLabel value={run.difficulty} />
-            </span>
-            <span className="text-[0.8em]">
-              <PlayerLabel value={run.player} nameClassName={WIDE_ONLY} />
-            </span>
-            {/* クリアは、題字と同じ黄色で目立たせる。途中で終わった「ステージ n/n」は、一回り小さくして控えめに */}
-            <span
-              className={`tabular-nums ${run.result === 'cleared' ? 'text-[0.8em] text-primary' : 'text-[0.65em]'}`}
-            >
-              {resultText(run)}
-            </span>
-            <span className="text-[0.8em] tabular-nums">{formatPlayTime(run.playSeconds)}</span>
-            <span className="truncate text-[0.8em]">{run.deviceName}</span>
-            <span className="text-[0.7em] text-muted-foreground tabular-nums">
-              {formatRecordedAt(run.createdAt)}
-            </span>
-          </li>
-        ))}
+              <span
+                className="text-center font-display text-[1.4em] leading-none tabular-nums"
+                style={{ color: rankColor(run.rank) }}
+              >
+                {run.rank}
+              </span>
+              <span className="text-right font-display text-[1.4em] leading-none tabular-nums">
+                {formatScore(run.score)}
+              </span>
+              <span className="text-center text-[0.8em]">
+                <DifficultyLabel value={run.difficulty} />
+              </span>
+              <span className="text-[0.8em]">
+                <PlayerLabel
+                  value={run.player}
+                  nameClassName={WIDE_ONLY}
+                  className="justify-center"
+                />
+              </span>
+              {/* クリアは、題字と同じ黄色で目立たせる。途中で終わった「ステージ n/n」は、一回り小さくして控えめに */}
+              <span
+                className={`text-center tabular-nums ${run.result === 'cleared' ? 'text-[0.8em] text-primary' : 'text-[0.65em] text-muted-foreground'}`}
+              >
+                {resultText(run)}
+              </span>
+              <span className="text-center text-[0.8em] tabular-nums">
+                {formatPlayTime(run.playSeconds)}
+              </span>
+              <span className="truncate text-center text-[0.8em]">{run.deviceName}</span>
+              <span className="text-center text-[0.7em] text-muted-foreground tabular-nums">
+                {formatRecordedAt(run.createdAt)}
+              </span>
+            </li>
+          );
+        })}
       </ol>
       {/* 画面の右下の隅に小さく出す(サイネージの画面全体が基準)。ページの点と同じ高さ */}
       <LastUpdated

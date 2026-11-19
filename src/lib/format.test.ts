@@ -10,10 +10,10 @@ describe('formatScore', () => {
 });
 
 describe('formatPlayTime', () => {
-  test('分:秒にして、秒より下は切り捨てる', () => {
-    expect(formatPlayTime(0)).toBe('0:00');
-    expect(formatPlayTime(9.9)).toBe('0:09');
-    expect(formatPlayTime(312.4)).toBe('5:12');
+  test('分を 2 桁にそろえた分:秒にして、秒より下は切り捨てる', () => {
+    expect(formatPlayTime(0)).toBe('00:00');
+    expect(formatPlayTime(9.9)).toBe('00:09');
+    expect(formatPlayTime(312.4)).toBe('05:12');
     expect(formatPlayTime(600)).toBe('10:00');
   });
 
@@ -23,7 +23,7 @@ describe('formatPlayTime', () => {
   });
 
   test('負の値は 0 として扱う', () => {
-    expect(formatPlayTime(-5)).toBe('0:00');
+    expect(formatPlayTime(-5)).toBe('00:00');
   });
 });
 

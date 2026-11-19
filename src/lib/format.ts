@@ -5,13 +5,16 @@ export function formatScore(score: number): string {
   return scoreFormat.format(score);
 }
 
-/** プレイ時間(秒)を「分:秒」にする。1 時間以上は「時:分:秒」。秒より下は切り捨てる。 */
+/**
+ * プレイ時間(秒)を「分:秒」にする。1 時間以上は「時:分:秒」。秒より下は切り捨てる。
+ * 分は 2 桁に 0 で埋める。表で並べたとき、どの行も同じ幅になる。例: 312 → "05:12"
+ */
 export function formatPlayTime(seconds: number): string {
   const total = Math.max(0, Math.floor(seconds));
   const h = Math.floor(total / 3600);
-  const m = Math.floor((total % 3600) / 60);
+  const m = String(Math.floor((total % 3600) / 60)).padStart(2, '0');
   const s = String(total % 60).padStart(2, '0');
-  return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${s}` : `${m}:${s}`;
+  return h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`;
 }
 
 const recordedAtFormat = new Intl.DateTimeFormat('ja-JP', {

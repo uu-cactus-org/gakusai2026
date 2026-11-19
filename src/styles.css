@@ -132,7 +132,7 @@
   --secondary: rgb(234 174 138);
   --secondary-foreground: rgb(52 46 36);
   --muted: rgb(236 240 226);
-  --muted-foreground: rgb(106 92 74);
+  --muted-foreground: rgb(85, 74, 60);
   --accent: rgb(188 205 129);
   --accent-foreground: rgb(52 46 36);
   --destructive: rgb(190 40 40);

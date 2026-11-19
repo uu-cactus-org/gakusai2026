@@ -77,6 +77,9 @@ function useScreenWakeLock() {
   }, []);
 }
 
+// ゲームが切り替わるときに、幕を下ろす時間と上げる時間(それぞれ)
+const FADE_MS = 300;
+
 function Signage() {
   const { interval, rows, pages } = Route.useSearch();
   const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
@@ -99,8 +102,21 @@ function Signage() {
     [board.id],
   );
 
+  // 別のボードへ移るときの行き先。入っているあいだ、黒い幕を下ろす。幕が下りきったら映すものを替えて、幕を上げる
+  const [fadingTo, setFadingTo] = useState<{ board: number; page: number } | null>(null);
+  useEffect(() => {
+    if (!fadingTo) return;
+    const timer = setTimeout(() => {
+      setSlide(fadingTo);
+      setFadingTo(null);
+    }, FADE_MS);
+    return () => clearTimeout(timer);
+  }, [fadingTo]);
+
   // 次(+1)か前(-1)へ送る。ボードの端まで行ったら、隣のボードへ移る
   const step = (delta: 1 | -1) => {
+    // 幕を下ろしているあいだは、送らない
+    if (fadingTo) return;
     const nextPage = page + delta;
     if (nextPage >= 0 && nextPage < pageCount) {
       setSlide({ board: slide.board, page: nextPage });
@@ -108,7 +124,10 @@ function Signage() {
     }
     const nextBoard = (slide.board + delta + SIGNAGE_BOARDS.length) % SIGNAGE_BOARDS.length;
     const nextBoardPages = pageCounts[SIGNAGE_BOARDS[nextBoard]?.id ?? ''] ?? 1;
-    setSlide({ board: nextBoard, page: delta > 0 ? 0 : nextBoardPages - 1 });
+    const next = { board: nextBoard, page: delta > 0 ? 0 : nextBoardPages - 1 };
+    // ボードが 1 つだけなら、同じボードの端へ回るだけなので、幕は下ろさない
+    if (nextBoard === slide.board) setSlide(next);
+    else setFadingTo(next);
   };
 
   // 自動送り。手で送ったときも、そこから数え直す
@@ -214,6 +233,13 @@ function Signage() {
           />
         </div>
       </footer>
+
+      {/* ゲームが切り替わるときの幕。背景ごと隠す */}
+      <div
+        className="pointer-events-none absolute inset-0 bg-black transition-opacity ease-linear"
+        style={{ opacity: fadingTo ? 1 : 0, transitionDuration: `${FADE_MS}ms` }}
+        aria-hidden="true"
+      />
 
       {/* 操作。全画面のあいだは隠す(キーでの操作は効く) */}
       {!isFullscreen && (

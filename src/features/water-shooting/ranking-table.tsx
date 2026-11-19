@@ -10,13 +10,21 @@ import {
 } from '#/components/ui/table';
 import { formatPlayTime, formatRecordedAt, formatScore } from '#/lib/format';
 import { resultLabel } from './labels';
-import { DifficultyLabel, PlayerLabel, rankColor } from './run-labels';
+import { DifficultyLabel, PlayerLabel, rankColor, rankTint } from './run-labels';
 import type { WaterShootingRun } from './ranking';
+
+const WIDEST_RESULT_LABEL = resultLabel('game_over');
 
 function ResultBadge({ run }: { run: WaterShootingRun }) {
   return (
     <Badge variant={run.result === 'cleared' ? 'default' : 'outline'}>
-      {resultLabel(run.result)}
+      {/* いちばん長い表記を、見えないまま高さ 0 で下に置いて、どの結果でもバッジの幅をそろえる */}
+      <span className="flex flex-col items-center px-0.5">
+        {resultLabel(run.result)}
+        <span aria-hidden="true" className="invisible h-0">
+          {WIDEST_RESULT_LABEL}
+        </span>
+      </span>
     </Badge>
   );
 }
@@ -33,22 +41,26 @@ function WideTable({ runs }: { runs: WaterShootingRun[] }) {
       <TableHeader>
         {/* 見出しの行は、背景が透けない地にして、記録の行より少し濃く見せる */}
         <TableRow className={`bg-background hover:bg-background ${EDGE}`}>
-          <TableHead className="text-right">順位</TableHead>
+          <TableHead className="text-center">順位</TableHead>
           <TableHead className="text-right">スコア</TableHead>
-          <TableHead>難易度</TableHead>
-          <TableHead>キャラ</TableHead>
-          <TableHead>結果</TableHead>
-          <TableHead>ステージ</TableHead>
-          <TableHead className="text-right">プレイ時間</TableHead>
-          <TableHead>PC</TableHead>
-          <TableHead>記録した時刻</TableHead>
+          <TableHead className="text-center">難易度</TableHead>
+          <TableHead className="text-center">キャラ</TableHead>
+          <TableHead className="text-center">結果</TableHead>
+          <TableHead className="text-center">ステージ</TableHead>
+          <TableHead className="text-center">タイム</TableHead>
+          <TableHead className="text-center">PC</TableHead>
+          <TableHead className="text-center">記録した時刻</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {runs.map((run) => (
-          <TableRow key={run.id} className={`border-border/50 ${EDGE}`}>
+          <TableRow
+            key={run.id}
+            className={`border-border/50 ${EDGE}`}
+            style={{ backgroundColor: rankTint(run.rank) }}
+          >
             <TableCell
-              className="text-right font-display text-xl tabular-nums"
+              className="text-center font-display text-xl tabular-nums"
               style={{ color: rankColor(run.rank) }}
             >
               {run.rank}
@@ -56,21 +68,21 @@ function WideTable({ runs }: { runs: WaterShootingRun[] }) {
             <TableCell className="text-right font-display text-xl tabular-nums">
               {formatScore(run.score)}
             </TableCell>
-            <TableCell>
+            <TableCell className="text-center">
               <DifficultyLabel value={run.difficulty} />
             </TableCell>
             <TableCell>
-              <PlayerLabel value={run.player} />
+              <PlayerLabel value={run.player} className="justify-center" />
             </TableCell>
-            <TableCell>
+            <TableCell className="text-center">
               <ResultBadge run={run} />
             </TableCell>
-            <TableCell className="tabular-nums">{stageText(run)}</TableCell>
-            <TableCell className="text-right tabular-nums">
+            <TableCell className="tabular-nums text-center">{stageText(run)}</TableCell>
+            <TableCell className="text-center tabular-nums">
               {formatPlayTime(run.playSeconds)}
             </TableCell>
-            <TableCell>{run.deviceName}</TableCell>
-            <TableCell className="text-muted-foreground tabular-nums">
+            <TableCell className="text-center">{run.deviceName}</TableCell>
+            <TableCell className="text-center text-muted-foreground tabular-nums">
               {formatRecordedAt(run.createdAt)}
             </TableCell>
           </TableRow>
@@ -85,7 +97,12 @@ function NarrowList({ runs }: { runs: WaterShootingRun[] }) {
   return (
     <ol className="divide-y divide-border/50">
       {runs.map((run) => (
-        <li key={run.id} className="flex items-center gap-3 py-3">
+        // 色を枠の端まで敷くため、枠の内側の余白の分だけ左右にはみ出させて、同じだけ余白を持たせる
+        <li
+          key={run.id}
+          className="-mx-3 flex items-center gap-3 px-3 py-3 sm:-mx-4 sm:px-4"
+          style={{ backgroundColor: rankTint(run.rank) }}
+        >
           <span
             className="w-9 shrink-0 text-right font-display text-2xl tabular-nums"
             style={{ color: rankColor(run.rank) }}
