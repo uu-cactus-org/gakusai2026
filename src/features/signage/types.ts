@@ -17,6 +17,8 @@ export type SignageBoard = {
   id: string;
   title: string;
   subtitle: string;
+  /** 題字を、ゲームのロゴに差し替える。無ければ title と subtitle を文字で出す */
+  Title?: ComponentType;
   Component: ComponentType<SignageBoardProps>;
   /** このボードを映すあいだ、ページ全体に付ける見た目のクラス。無ければ共通の見た目 */
   themeClass?: string;

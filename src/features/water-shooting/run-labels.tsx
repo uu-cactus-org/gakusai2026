@@ -31,8 +31,9 @@ export function DifficultyLabel({ value }: { value: string }) {
 export function PlayerLabel({ value, showName = true }: { value: string; showName?: boolean }) {
   const sprite = PLAYER_SPRITES[value];
   return (
-    <span className="inline-flex items-center gap-[0.3em]">
-      {sprite && <img src={sprite} alt="" className="pixelated size-[1.6em] shrink-0" />}
+    // inline-flex だと絵の下端が文字のベースラインに乗って、行の中で上に寄る。flex にして箱ごと中央に置かせる
+    <span className="flex items-center gap-[0.3em]">
+      {sprite && <img src={sprite} alt="" className="pixelated size-[2em] shrink-0" />}
       {(showName || !sprite) && playerLabel(value)}
     </span>
   );

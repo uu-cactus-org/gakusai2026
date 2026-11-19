@@ -25,6 +25,8 @@
 @theme {
   /* 見出しと数字。共通の見た目では本文と同じ書体で、ゲームごとの見た目で差し替える */
   --font-display: var(--font-sans);
+  /* 順位やタイムなどの数字。ゲームごとの見た目で差し替える */
+  --font-digits: var(--font-display);
 }
 
 /* 共通の見た目(shadcn/ui の neutral)。トップと管理画面は、どのゲームのものでもないのでこれを使う。 */
@@ -108,9 +110,10 @@
  * 校舎の絵を背景に敷き(UuJumpBackdrop)、絵の縁取りの焦げ茶を文字と枠に使う。
  */
 .theme-uu-jump {
-  /* ゲームの画面と同じドットの書体 */
-  --font-sans: 'DotGothic16', ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-sans);
+  /* 題字は、ゲームの画面と同じドットの書体。本文と数字は、小さくても読みやすい WaterShooting と同じ書体 */
+  --font-sans: 'PixelMplus12', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'DotGothic16', ui-sans-serif, system-ui, sans-serif;
+  --font-digits: 'Jersey 10', 'PixelMplus12', ui-sans-serif, system-ui, sans-serif;
   font-family: var(--font-sans);
 
   --radius: 0rem;
@@ -204,24 +207,29 @@
 
 /* UU-JUMP の題字。ゲームのタイトル画面と同じ、黄色い字に焦げ茶の縁取り */
 .uu-jump-title {
+  font-family: var(--font-display);
   color: rgb(249 255 0);
   --edge: rgb(52 46 36);
+  /* 縁取りの太さ。サイネージでは、文字と一緒に伸び縮みするよう em で上書きする */
+  /* 半端な太さだと縁がにじむので、px の整数に丸める */
+  --w: max(1px, round(var(--uu-jump-edge, 3px), 1px));
   text-shadow:
-    3px 0 var(--edge),
-    -3px 0 var(--edge),
-    0 3px var(--edge),
-    0 -3px var(--edge),
-    3px 3px var(--edge),
-    -3px 3px var(--edge),
-    3px -3px var(--edge),
-    -3px -3px var(--edge),
-    0 6px var(--edge);
+    var(--w) 0 var(--edge),
+    calc(var(--w) * -1) 0 var(--edge),
+    0 var(--w) var(--edge),
+    0 calc(var(--w) * -1) var(--edge),
+    var(--w) var(--w) var(--edge),
+    calc(var(--w) * -1) var(--w) var(--edge),
+    var(--w) calc(var(--w) * -1) var(--edge),
+    calc(var(--w) * -1) calc(var(--w) * -1) var(--edge),
+    0 calc(var(--w) * 2) var(--edge);
 }
 
 /* UU-JUMP のサボテン。横に 4 コマ並んだ絵を、1 コマずつ送る */
 @keyframes cactakun-charge {
   to {
-    background-position-x: calc(var(--cactakun-size) * -4);
+    /* 絵の幅は枠の 4 倍。割合で書くと (枠 - 絵) に掛かるので、4 コマぶん送るには 4/3 */
+    background-position-x: 133.3333%;
   }
 }
 

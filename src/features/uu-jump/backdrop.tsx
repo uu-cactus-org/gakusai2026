@@ -1,7 +1,7 @@
 import school from '#/assets/uu-jump/bg_school.png';
 
 /**
- * ゲームのタイトル画面の絵(校舎)を、画面いっぱいに敷く。題字の部分は切り落としてある。
+ * ゲームのタイトル画面の絵(校舎)を、画面いっぱいに敷く。題字は補完して消してある。
  * 上に載せる文字と表が読めるよう、絵の縁取りと同じ焦げ茶の幕を掛ける。濃さは WaterShooting の背景と同じ。
  */
 export function UuJumpBackdrop({

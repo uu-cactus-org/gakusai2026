@@ -154,8 +154,14 @@ function Signage() {
       {board.Backdrop && <board.Backdrop step={slide.board + page} />}
 
       <header className="flex items-baseline gap-[0.8em] px-[1.5em] pt-[0.4em] pb-[0.2em]">
-        <h1 className="font-display text-[2.2em] leading-none text-primary">{board.title}</h1>
-        <p className="text-[0.9em]">{board.subtitle}</p>
+        {board.Title ? (
+          <board.Title />
+        ) : (
+          <>
+            <h1 className="font-display text-[2.2em] leading-none text-primary">{board.title}</h1>
+            <p className="text-[0.9em]">{board.subtitle}</p>
+          </>
+        )}
         {paused && <p className="text-[0.7em] text-muted-foreground">一時停止中</p>}
       </header>
 

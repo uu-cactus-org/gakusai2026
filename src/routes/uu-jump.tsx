@@ -36,6 +36,43 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: 'createdAt', label: '新しい順' },
 ];
 
+/** マップの切り替え。マップは数個なので、選択欄にせず、ボタンを並べて 1 回で選べるようにする。 */
+function MapToggle({
+  maps,
+  value,
+  onChange,
+}: {
+  maps: string[];
+  value: string;
+  onChange: (map: string) => void;
+}) {
+  return (
+    <div className="col-span-2 flex min-w-0 flex-col gap-1 text-xs text-muted-foreground">
+      <span id="uu-jump-map-label">マップ</span>
+      <div role="group" aria-labelledby="uu-jump-map-label" className="flex flex-wrap gap-1.5">
+        {maps.map((map) => {
+          const selected = map === value;
+          return (
+            <button
+              key={map}
+              type="button"
+              aria-pressed={selected}
+              onClick={() => onChange(map)}
+              className={`h-8 border-2 border-foreground px-3 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50 ${
+                selected
+                  ? 'translate-y-0.5 bg-primary text-primary-foreground'
+                  : 'bg-card text-foreground shadow-[0_2px_0_var(--foreground)] hover:bg-accent'
+              }`}
+            >
+              {map}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function UuJumpRanking() {
   useDocumentTheme(UU_JUMP_THEME);
   const search = Route.useSearch();
@@ -55,7 +92,6 @@ function UuJumpRanking() {
   // URL で指定されたマップに記録が無くても、選択欄には出す
   const mapNames = (maps.data ?? []).map((map) => map.name);
   if (selectedMap !== undefined && !mapNames.includes(selectedMap)) mapNames.push(selectedMap);
-  const mapOptions = mapNames.map((name) => ({ value: name, label: name }));
 
   const setPage = (page: number) => navigate({ search: (prev) => ({ ...prev, page }) });
   const pageCount = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
@@ -69,7 +105,7 @@ function UuJumpRanking() {
           一覧に戻る
         </Button>
         <div className="flex items-end gap-3">
-          <Cactakun size={64} />
+          <Cactakun />
           <h1 className="uu-jump-title text-5xl leading-none sm:text-6xl">
             UU-JUMP <span className="block text-2xl sm:inline sm:text-3xl">ランキング</span>
           </h1>
@@ -88,10 +124,9 @@ function UuJumpRanking() {
             }
           />
           {selectedMap !== undefined && (
-            <FilterSelect
-              label="マップ"
+            <MapToggle
+              maps={mapNames}
               value={selectedMap}
-              options={mapOptions}
               onChange={(map) =>
                 navigate({ search: (prev) => ({ ...prev, map, page: 1 }), replace: true })
               }
