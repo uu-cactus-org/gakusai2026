@@ -3,10 +3,10 @@ import type { InferResponseType } from 'hono/client';
 import { api } from '#/lib/api';
 
 const admin = api.admin;
-const runsApi = admin['water-shooting'].runs;
+const waterShootingRunsApi = admin['water-shooting'].runs;
 
-export type AdminRuns = InferResponseType<typeof runsApi.$get, 200>;
-export type AdminRun = AdminRuns['runs'][number];
+export type AdminWaterShootingRuns = InferResponseType<typeof waterShootingRunsApi.$get, 200>;
+export type AdminWaterShootingRun = AdminWaterShootingRuns['runs'][number];
 export type AdminDevice = InferResponseType<typeof admin.devices.$get, 200>['devices'][number];
 
 const uuJumpRunsApi = admin['uu-jump'].runs;
@@ -26,7 +26,7 @@ export type AdminRunsBaseParams<Sort extends string> = {
   deviceId?: string;
 };
 
-export type AdminRunsParams = AdminRunsBaseParams<'createdAt' | 'score'> & {
+export type AdminWaterShootingRunsParams = AdminRunsBaseParams<'createdAt' | 'score'> & {
   result?: 'cleared' | 'game_over';
 };
 
@@ -60,7 +60,8 @@ export const adminKeys = {
   all: ['admin'] as const,
   me: ['admin', 'me'] as const,
   devices: ['admin', 'devices'] as const,
-  runs: (params: AdminRunsParams) => ['admin', 'runs', params] as const,
+  waterShootingRuns: (params: AdminWaterShootingRunsParams) =>
+    ['admin', 'water-shooting', 'runs', params] as const,
   uuJumpRuns: (params: AdminUuJumpRunsParams) => ['admin', 'uu-jump', 'runs', params] as const,
 };
 
@@ -83,8 +84,8 @@ export const devicesQueryOptions = queryOptions({
   },
 });
 
-export async function fetchRuns(params: AdminRunsParams) {
-  const res = await runsApi.$get({
+export async function fetchWaterShootingRuns(params: AdminWaterShootingRunsParams) {
+  const res = await waterShootingRunsApi.$get({
     query: {
       limit: String(params.limit),
       offset: String(params.offset),
@@ -104,14 +105,17 @@ export async function renameDevice({ id, name }: { id: string; name: string }) {
   return res.json();
 }
 
-export async function setRunTest({ id, test }: { id: number; test: boolean }) {
-  const res = await runsApi[':id'].$patch({ param: { id: String(id) }, json: { test } });
+export async function setWaterShootingRunTest({ id, test }: { id: number; test: boolean }) {
+  const res = await waterShootingRunsApi[':id'].$patch({
+    param: { id: String(id) },
+    json: { test },
+  });
   if (!res.ok) throw await failure(res, '記録を更新できませんでした');
   return res.json();
 }
 
-export async function deleteRun(id: number) {
-  const res = await runsApi[':id'].$delete({ param: { id: String(id) } });
+export async function deleteWaterShootingRun(id: number) {
+  const res = await waterShootingRunsApi[':id'].$delete({ param: { id: String(id) } });
   if (!res.ok) throw await failure(res, '記録を消せませんでした');
   return res.json();
 }

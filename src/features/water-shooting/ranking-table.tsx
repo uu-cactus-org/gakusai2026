@@ -11,9 +11,9 @@ import {
 import { formatPlayTime, formatRecordedAt, formatScore } from '#/lib/format';
 import { resultLabel } from './labels';
 import { DifficultyLabel, PlayerLabel, rankColor } from './run-labels';
-import type { RankingRun } from './ranking';
+import type { WaterShootingRun } from './ranking';
 
-function ResultBadge({ run }: { run: RankingRun }) {
+function ResultBadge({ run }: { run: WaterShootingRun }) {
   return (
     <Badge variant={run.result === 'cleared' ? 'default' : 'outline'}>
       {resultLabel(run.result)}
@@ -21,10 +21,10 @@ function ResultBadge({ run }: { run: RankingRun }) {
   );
 }
 
-const stageText = (run: RankingRun) => `${run.reachedStage} / ${run.totalStages}`;
+const stageText = (run: WaterShootingRun) => `${run.reachedStage} / ${run.totalStages}`;
 
 /** 幅のある画面向けの表。 */
-function WideTable({ runs }: { runs: RankingRun[] }) {
+function WideTable({ runs }: { runs: WaterShootingRun[] }) {
   return (
     <Table>
       <TableHeader>
@@ -77,7 +77,7 @@ function WideTable({ runs }: { runs: RankingRun[] }) {
 }
 
 /** スマホ向け。列を並べると横にはみ出すので、1 件を 2 行にまとめる。 */
-function NarrowList({ runs }: { runs: RankingRun[] }) {
+function NarrowList({ runs }: { runs: WaterShootingRun[] }) {
   return (
     <ol className="divide-y">
       {runs.map((run) => (
@@ -108,7 +108,7 @@ function NarrowList({ runs }: { runs: RankingRun[] }) {
   );
 }
 
-export function RankingTable({ runs }: { runs: RankingRun[] }) {
+export function WaterShootingRankingTable({ runs }: { runs: WaterShootingRun[] }) {
   return (
     <>
       <div className="hidden md:block">
@@ -121,7 +121,7 @@ export function RankingTable({ runs }: { runs: RankingRun[] }) {
   );
 }
 
-export function RankingTableSkeleton({ rows }: { rows: number }) {
+export function WaterShootingRankingTableSkeleton({ rows }: { rows: number }) {
   return (
     <div className="flex flex-col gap-2" aria-busy="true" aria-label="読み込み中">
       {Array.from({ length: rows }, (_, i) => (

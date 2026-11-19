@@ -4,7 +4,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { z } from 'zod';
 import { FilterSelect } from '#/components/filter-select';
 import { LastUpdated } from '#/components/last-updated';
-import { RotatingGameBackdrop } from '#/features/water-shooting/backdrop';
+import { RotatingWaterShootingBackdrop } from '#/features/water-shooting/backdrop';
 import { WATER_SHOOTING_THEME } from '#/features/water-shooting/theme';
 import { useDocumentTheme } from '#/lib/use-document-theme';
 import { Button } from '#/components/ui/button';
@@ -18,7 +18,10 @@ import {
 } from '#/features/water-shooting/labels';
 import { SORT_KEYS, rankingQueryOptions } from '#/features/water-shooting/ranking';
 import type { SortKey } from '#/features/water-shooting/ranking';
-import { RankingTable, RankingTableSkeleton } from '#/features/water-shooting/ranking-table';
+import {
+  WaterShootingRankingTable,
+  WaterShootingRankingTableSkeleton,
+} from '#/features/water-shooting/ranking-table';
 
 const PAGE_SIZE = 20;
 
@@ -90,7 +93,7 @@ function WaterShootingRanking() {
 
   return (
     <main className="mx-auto flex max-w-5xl flex-col gap-4 p-4 sm:p-6">
-      <RotatingGameBackdrop />
+      <RotatingWaterShootingBackdrop />
       <header className="flex flex-wrap items-end justify-between gap-2">
         <div>
           <Button
@@ -139,7 +142,7 @@ function WaterShootingRanking() {
       </div>
 
       {isPending ? (
-        <RankingTableSkeleton rows={10} />
+        <WaterShootingRankingTableSkeleton rows={10} />
       ) : !data ? (
         <div className="flex flex-col items-start gap-3 py-8">
           <p>ランキングを読み込めませんでした。</p>
@@ -169,7 +172,7 @@ function WaterShootingRanking() {
                 isPlaceholderData ? 'opacity-60 transition-opacity' : ''
               }`}
             >
-              <RankingTable runs={data.runs} />
+              <WaterShootingRankingTable runs={data.runs} />
             </div>
           )}
 

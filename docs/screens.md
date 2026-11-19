@@ -76,7 +76,7 @@ UU-JUMP(ジャンプアクション)のランキングの画面です。API の�
 本番では、Cloudflare Access の GitHub ログインを通った人だけが開けます([access-setup.md](access-setup.md))。
 左上に「(GitHub のユーザー名) としてログイン中」と出ます。ユーザー名が取れないときはプロフィールの名前、それも取れないときは「ログイン中」だけになります。ローカル(`vp dev`)ではログインの確認を飛ばします。
 
-タブが 3 つあります(WaterShooting、UU-JUMP、PC)。`/admin?tab=uu-jump` や `/admin?tab=devices` で直接開けます。
+タブが 3 つあります(WaterShooting、UU-JUMP、PC)。`/admin?tab=water-shooting`(既定)、`/admin?tab=uu-jump`、`/admin?tab=devices` で直接開けます。
 UU-JUMP のタブは、WaterShooting の記録と同じ操作ができます。絞り込みは、種類、PC、マップです。
 
 ### WaterShooting の記録

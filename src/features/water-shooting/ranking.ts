@@ -5,13 +5,13 @@ import type { RESULTS } from './labels';
 
 const getRanking = api['water-shooting'].ranking.$get;
 
-export type Ranking = InferResponseType<typeof getRanking, 200>;
-export type RankingRun = Ranking['runs'][number];
+export type WaterShootingRanking = InferResponseType<typeof getRanking, 200>;
+export type WaterShootingRun = WaterShootingRanking['runs'][number];
 
 export const SORT_KEYS = ['score', 'playSeconds', 'reachedStage', 'createdAt'] as const;
 export type SortKey = (typeof SORT_KEYS)[number];
 
-export type RankingParams = {
+export type WaterShootingRankingParams = {
   limit: number;
   offset: number;
   sort?: SortKey;
@@ -23,7 +23,7 @@ export type RankingParams = {
 // 新しい記録を拾う間隔
 const REFETCH_INTERVAL_MS = 10_000;
 
-async function fetchRanking(params: RankingParams): Promise<Ranking> {
+async function fetchRanking(params: WaterShootingRankingParams): Promise<WaterShootingRanking> {
   const res = await getRanking({
     query: {
       limit: String(params.limit),
@@ -39,7 +39,7 @@ async function fetchRanking(params: RankingParams): Promise<Ranking> {
 }
 
 /** ランキングの 1 ページ。定期的に取り直し、ページや条件を変えた直後は前の表示を残す。 */
-export function rankingQueryOptions(params: RankingParams) {
+export function rankingQueryOptions(params: WaterShootingRankingParams) {
   return queryOptions({
     queryKey: ['water-shooting', 'ranking', params],
     queryFn: () => fetchRanking(params),

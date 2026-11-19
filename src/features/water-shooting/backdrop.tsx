@@ -37,7 +37,7 @@ function Layer({ image, seconds }: { image: string; seconds: number | null }) {
  * ゲームのステージの背景を、画面いっぱいに敷く。文字が読めるよう、上から暗い幕を掛ける。
  * stage を変えると、ゆっくり切り替わる。
  */
-export function GameBackdrop({
+export function WaterShootingBackdrop({
   stage,
   scroll = false,
   dim = 0.7,
@@ -75,7 +75,7 @@ const randomStage = () => Math.floor(Math.random() * STAGES.length);
 /**
  * ステージの背景を、ランダムに選んで敷く。30 秒ごとに、今とは別のステージへ切り替える。
  */
-export function RotatingGameBackdrop({ scroll, dim }: { scroll?: boolean; dim?: number }) {
+export function RotatingWaterShootingBackdrop({ scroll, dim }: { scroll?: boolean; dim?: number }) {
   const [stage, setStage] = useState(randomStage);
 
   useEffect(() => {
@@ -86,10 +86,10 @@ export function RotatingGameBackdrop({ scroll, dim }: { scroll?: boolean; dim?: 
     return () => clearInterval(timer);
   }, []);
 
-  return <GameBackdrop stage={stage} scroll={scroll} dim={dim} />;
+  return <WaterShootingBackdrop stage={stage} scroll={scroll} dim={dim} />;
 }
 
 /** サイネージ用の背景。ページを送るたびに、次のステージの背景へ切り替える。 */
 export function WaterShootingSignageBackdrop({ step }: { step: number }) {
-  return <GameBackdrop stage={step} scroll dim={0.55} />;
+  return <WaterShootingBackdrop stage={step} scroll dim={0.55} />;
 }

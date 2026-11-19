@@ -5,13 +5,13 @@ import type { SignageBoardProps } from '#/features/signage/types';
 import { formatPlayTime, formatScore } from '#/lib/format';
 import { DifficultyLabel, PlayerLabel, rankColor } from './run-labels';
 import { rankingQueryOptions } from './ranking';
-import type { RankingRun } from './ranking';
+import type { WaterShootingRun } from './ranking';
 
 // 列の幅。文字の大きさ(em)に合わせて、画面の大きさと一緒に伸び縮みする。
 // 順位、スコア、難易度、キャラ、結果、プレイ時間、PC
 const COLUMNS = '3em 7.5em 6em 3em 8em 4em minmax(0, 1fr)';
 
-const resultText = (run: RankingRun) =>
+const resultText = (run: WaterShootingRun) =>
   run.result === 'cleared' ? 'クリア' : `ステージ ${run.reachedStage}/${run.totalStages}`;
 
 /** サイネージ用の WaterShooting のランキング。スコアの高い順に、1 ページ分を画面いっぱいに並べる。 */

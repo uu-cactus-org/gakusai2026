@@ -1,12 +1,17 @@
 import { FilterSelect } from '#/components/filter-select';
 import { difficultyLabel, playerLabel, resultLabel } from '#/features/water-shooting/labels';
 import { formatPlayTime, formatScore } from '#/lib/format';
-import { adminKeys, deleteRun, fetchRuns, setRunTest } from './api';
-import type { AdminRun, AdminRunsParams } from './api';
+import {
+  adminKeys,
+  deleteWaterShootingRun,
+  fetchWaterShootingRuns,
+  setWaterShootingRunTest,
+} from './api';
+import type { AdminWaterShootingRun, AdminWaterShootingRunsParams } from './api';
 import { ALL, RunsBoard } from './runs-board';
 import type { RunColumn } from './runs-board';
 
-type Result = NonNullable<AdminRunsParams['result']>;
+type Result = NonNullable<AdminWaterShootingRunsParams['result']>;
 
 const SORT_OPTIONS = [
   { value: 'createdAt', label: '新しい順' },
@@ -19,7 +24,7 @@ const RESULT_OPTIONS: { value: Result | typeof ALL; label: string }[] = [
   { value: 'game_over', label: resultLabel('game_over') },
 ];
 
-const COLUMNS: RunColumn<AdminRun>[] = [
+const COLUMNS: RunColumn<AdminWaterShootingRun>[] = [
   { head: 'スコア', numeric: true, strong: true, cell: (run) => formatScore(run.score) },
   { head: '難易度', cell: (run) => difficultyLabel(run.difficulty) },
   { head: 'キャラ', cell: (run) => playerLabel(run.player) },
@@ -36,13 +41,13 @@ const COLUMNS: RunColumn<AdminRun>[] = [
 ];
 
 /** WaterShooting の記録の一覧と、ランキングから外す・戻す・消す。 */
-export function RunsPanel() {
+export function WaterShootingRunsPanel() {
   return (
     <RunsBoard
-      queryKey={adminKeys.runs}
-      fetchRuns={fetchRuns}
-      setTest={setRunTest}
-      deleteRun={deleteRun}
+      queryKey={adminKeys.waterShootingRuns}
+      fetchRuns={fetchWaterShootingRuns}
+      setTest={setWaterShootingRunTest}
+      deleteRun={deleteWaterShootingRun}
       sortOptions={SORT_OPTIONS}
       initialExtra={{} as { result?: Result }}
       extraFilter={({ extra, setExtra }) => (

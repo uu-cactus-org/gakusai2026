@@ -4,9 +4,9 @@ import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { fetchAccessIdentity, requireAccess } from './auth';
-import { devices, uuJumpRuns, waterShootingRuns as runs } from './db/schema';
+import { devices, uuJumpRuns, waterShootingRuns } from './db/schema';
 
-const runsQuerySchema = z.object({
+const waterShootingRunsQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(200).default(50),
   offset: z.coerce.number().int().min(0).default(0),
   // 既定は新しい順
@@ -77,45 +77,47 @@ export const adminApp = new Hono<{ Bindings: Env }>()
     },
   )
   // WaterShooting の記録の一覧。ランキングと違い、テストの記録も、どの PC からかも見える
-  .get('/water-shooting/runs', zValidator('query', runsQuerySchema), async (c) => {
+  .get('/water-shooting/runs', zValidator('query', waterShootingRunsQuerySchema), async (c) => {
     const db = drizzle(c.env.DB);
     const query = c.req.valid('query');
 
     const where = and(
-      query.test === 'all' ? undefined : eq(runs.isTest, query.test === 'only'),
-      query.deviceId ? eq(runs.deviceId, query.deviceId) : undefined,
-      query.result ? eq(runs.result, query.result) : undefined,
+      query.test === 'all' ? undefined : eq(waterShootingRuns.isTest, query.test === 'only'),
+      query.deviceId ? eq(waterShootingRuns.deviceId, query.deviceId) : undefined,
+      query.result ? eq(waterShootingRuns.result, query.result) : undefined,
     );
     const direction = query.order === 'asc' ? asc : desc;
     // 記録した時刻は秒までしか持たないので、記録順は id で並べる(id は記録した順に増える)
     const orderBy =
-      query.sort === 'score' ? [direction(runs.score), asc(runs.id)] : [direction(runs.id)];
+      query.sort === 'score'
+        ? [direction(waterShootingRuns.score), asc(waterShootingRuns.id)]
+        : [direction(waterShootingRuns.id)];
 
     const [rows, [totalRow]] = await Promise.all([
       db
         .select({
-          id: runs.id,
-          runId: runs.runId,
-          deviceId: runs.deviceId,
+          id: waterShootingRuns.id,
+          runId: waterShootingRuns.runId,
+          deviceId: waterShootingRuns.deviceId,
           deviceName: devices.displayName,
-          score: runs.score,
-          baseScore: runs.baseScore,
-          result: runs.result,
-          difficulty: runs.difficulty,
-          player: runs.player,
-          playSeconds: runs.playSeconds,
-          reachedStage: runs.reachedStage,
-          totalStages: runs.totalStages,
-          test: runs.isTest,
-          createdAt: runs.createdAt,
+          score: waterShootingRuns.score,
+          baseScore: waterShootingRuns.baseScore,
+          result: waterShootingRuns.result,
+          difficulty: waterShootingRuns.difficulty,
+          player: waterShootingRuns.player,
+          playSeconds: waterShootingRuns.playSeconds,
+          reachedStage: waterShootingRuns.reachedStage,
+          totalStages: waterShootingRuns.totalStages,
+          test: waterShootingRuns.isTest,
+          createdAt: waterShootingRuns.createdAt,
         })
-        .from(runs)
-        .innerJoin(devices, eq(runs.deviceId, devices.id))
+        .from(waterShootingRuns)
+        .innerJoin(devices, eq(waterShootingRuns.deviceId, devices.id))
         .where(where)
         .orderBy(...orderBy)
         .limit(query.limit)
         .offset(query.offset),
-      db.select({ total: count() }).from(runs).where(where),
+      db.select({ total: count() }).from(waterShootingRuns).where(where),
     ]);
 
     return c.json({ total: totalRow?.total ?? 0, runs: rows });
@@ -129,10 +131,10 @@ export const adminApp = new Hono<{ Bindings: Env }>()
       if (id === null) return c.json({ error: 'id が数字ではありません' }, 400);
       const db = drizzle(c.env.DB);
       const [row] = await db
-        .update(runs)
+        .update(waterShootingRuns)
         .set({ isTest: c.req.valid('json').test })
-        .where(eq(runs.id, id))
-        .returning({ id: runs.id, test: runs.isTest });
+        .where(eq(waterShootingRuns.id, id))
+        .returning({ id: waterShootingRuns.id, test: waterShootingRuns.isTest });
       if (!row) return c.json({ error: 'その id の記録はありません' }, 404);
       return c.json(row);
     },
@@ -142,7 +144,10 @@ export const adminApp = new Hono<{ Bindings: Env }>()
     const id = parseRunId(c.req.param('id'));
     if (id === null) return c.json({ error: 'id が数字ではありません' }, 400);
     const db = drizzle(c.env.DB);
-    const [row] = await db.delete(runs).where(eq(runs.id, id)).returning({ id: runs.id });
+    const [row] = await db
+      .delete(waterShootingRuns)
+      .where(eq(waterShootingRuns.id, id))
+      .returning({ id: waterShootingRuns.id });
     if (!row) return c.json({ error: 'その id の記録はありません' }, 404);
     return c.json({ id: row.id });
   })
