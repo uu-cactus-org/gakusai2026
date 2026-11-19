@@ -124,8 +124,11 @@
   --card-foreground: rgb(52 46 36);
   --popover: rgb(255 255 255);
   --popover-foreground: rgb(52 46 36);
-  --primary: rgb(52 46 36);
-  --primary-foreground: rgb(249 255 0);
+  /* 見出しの行や選んだボタンの地。縁取りの焦げ茶で広く塗ると黒く浮くので、校舎のれんがに寄せた茶色 */
+  --primary: rgb(123 84 47);
+  --primary-foreground: rgb(245 239 227);
+  /* ランキングの表を載せる枠の地。背景の絵が透けるよう、使う側で薄める */
+  --panel: rgb(245 233 216);
   --secondary: rgb(234 174 138);
   --secondary-foreground: rgb(52 46 36);
   --muted: rgb(236 240 226);
@@ -212,6 +215,13 @@
   }
   to {
     translate: var(--drift-to);
+  }
+}
+
+/* 漂うキャラのうち、まれに出る回りながら進む 1 体。回る向きは、再生の向きで変える */
+@keyframes water-shooting-spin {
+  to {
+    rotate: 360deg;
   }
 }
 

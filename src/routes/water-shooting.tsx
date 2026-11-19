@@ -175,7 +175,7 @@ function WaterShootingRanking() {
             </div>
           ) : (
             <div
-              className={`border-2 bg-background/80 px-3 sm:px-4 ${
+              className={`border-2 bg-background/80 px-3 sm:px-4 md:px-0 ${
                 isPlaceholderData ? 'opacity-60 transition-opacity' : ''
               }`}
             >

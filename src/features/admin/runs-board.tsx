@@ -3,6 +3,7 @@ import type { QueryKey } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight, EyeOff, RefreshCw, Trash2, Undo2 } from 'lucide-react';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
+import { toast } from 'sonner';
 import { FilterSelect } from '#/components/filter-select';
 import { LastUpdated } from '#/components/last-updated';
 import {
@@ -96,7 +97,6 @@ export function RunsBoard<
   const [extra, setExtra] = useState(initialExtra);
   const [page, setPage] = useState(1);
   const [deleting, setDeleting] = useState<Run | null>(null);
-  const [message, setMessage] = useState<{ kind: 'done' | 'error'; text: string } | null>(null);
 
   // 並べ替えや絞り込みを変えたら、1 ページ目に戻す
   const filtering =
@@ -130,22 +130,21 @@ export function RunsBoard<
   const toggleTest = useMutation({
     mutationFn: setTest,
     onSuccess: async (result) => {
-      setMessage({
-        kind: 'done',
-        text: result.test
+      toast.success(
+        result.test
           ? `ID ${result.id} をテスト扱いにしました(ランキングから外れます)`
           : `ID ${result.id} をランキングに戻しました`,
-      });
+      );
       await refreshAll();
     },
-    onError: (err) => setMessage({ kind: 'error', text: err.message }),
+    onError: (err) => toast.error(err.message),
   });
 
   const remove = useMutation({
     mutationFn: deleteRun,
     onSuccess: async (result) => {
       setDeleting(null);
-      setMessage({ kind: 'done', text: `ID ${result.id} を消しました` });
+      toast.success(`ID ${result.id} を消しました`);
       await refreshAll();
     },
   });
@@ -199,14 +198,6 @@ export function RunsBoard<
         </div>
       </div>
 
-      {message && (
-        <p
-          role="status"
-          className={`text-sm ${message.kind === 'error' ? 'text-destructive' : 'text-foreground'}`}
-        >
-          {message.text}
-        </p>
-      )}
       {error && <p className="text-sm text-destructive">{error.message}</p>}
 
       {isPending ? (

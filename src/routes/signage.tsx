@@ -1,4 +1,5 @@
-import { Link, createFileRoute, stripSearchParams } from '@tanstack/react-router';
+import { createFileRoute, stripSearchParams } from '@tanstack/react-router';
+import { Maximize, Pause, Play } from 'lucide-react';
 import { useCallback, useEffect, useEffectEvent, useState } from 'react';
 import type { MouseEvent } from 'react';
 import { z } from 'zod';
@@ -147,7 +148,7 @@ function Signage() {
   // 画面の左 1/4 を押したら前へ、右 1/4 を押したら次へ送る。タッチのモニターやマウスだけの席で使う
   const onClick = (event: MouseEvent<HTMLDivElement>) => {
     // 右上のボタンは、ボタンの働きだけをさせる
-    if ((event.target as Element).closest('a, button')) return;
+    if ((event.target as Element).closest('button')) return;
     const { left, width } = event.currentTarget.getBoundingClientRect();
     const x = (event.clientX - left) / width;
     if (x < 0.25) step(-1);
@@ -217,14 +218,18 @@ function Signage() {
       {/* 操作。全画面のあいだは隠す(キーでの操作は効く) */}
       {!isFullscreen && (
         <div className="absolute top-3 right-3 flex items-center gap-2 text-sm">
-          <Button variant="outline" size="sm" render={<Link to="/" />} nativeButton={false}>
-            もどる
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => setPaused((prev) => !prev)}>
-            {paused ? '再開' : '一時停止'}
+          <Button
+            variant="outline"
+            size="icon-sm"
+            aria-label={paused ? '再開' : '一時停止'}
+            title={paused ? '再開' : '一時停止'}
+            onClick={() => setPaused((prev) => !prev)}
+          >
+            {paused ? <Play aria-hidden="true" /> : <Pause aria-hidden="true" />}
           </Button>
           <Button size="sm" onClick={toggleFullscreen}>
-            全画面にする
+            <Maximize aria-hidden="true" />
+            全画面
           </Button>
         </div>
       )}

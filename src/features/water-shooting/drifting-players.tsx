@@ -17,6 +17,10 @@ const SPEED_MAX = 0.03;
 // 1 より小さいと 2 体が重なり、大きいと誰もいない間ができる。だいたい 1 体はいる、くらいにしている
 const GAP_MIN = 0.5;
 const GAP_MAX = 1.15;
+// 回りながら進む 1 体が出る間(秒)。平均でこの間に 1 体になるよう、出すたびに確率で決める
+const SPIN_EVERY_SECONDS = 600;
+// 回る速さ。1 回転にかける秒数
+const SPIN_TURN_SECONDS = 0.4;
 
 type Drifter = {
   id: number;
@@ -27,6 +31,8 @@ type Drifter = {
   /** 絵を回す角度(度) */
   rotate: number;
   seconds: number;
+  /** 回りながら進むときの、回る向き。ふつうに進むときは null */
+  spin: 'normal' | 'reverse' | null;
 };
 
 const between = (min: number, max: number) => min + Math.random() * (max - min);
@@ -69,12 +75,14 @@ function createDrifter(id: number): Drifter {
     to: `${startX + dirX * distance}px ${startY + dirY * distance}px`,
     rotate: (Math.atan2(dirY, dirX) * 180) / Math.PI - HEAD_ANGLE,
     seconds: distance / speed,
+    spin: null,
   };
 }
 
 /**
  * ゲームのキャラを、画面の中に漂わせる。3 種類からランダムに選び、向きもばらばらに、頭を先にして横切らせる。
  * いつも誰かがいるほどではなく、ぱっと見ればだいたいどこかにいる、くらいの間で出す。
+ * 10 分に 1 体くらい、勢いよく回りながら横切るものが混じる。
  * 背景の幕の下に置くので、背景と同じ暗さになる。
  */
 export function DriftingPlayers() {
@@ -87,8 +95,13 @@ export function DriftingPlayers() {
     let timer: ReturnType<typeof setTimeout>;
     const spawn = () => {
       const drifter = createDrifter(nextId.current++);
+      const gapSeconds = drifter.seconds * between(GAP_MIN, GAP_MAX);
+      // 次の 1 体までの間が長いほど当たりやすくして、出す間隔によらず、平均の間をそろえる
+      if (Math.random() < gapSeconds / SPIN_EVERY_SECONDS) {
+        drifter.spin = Math.random() < 0.5 ? 'normal' : 'reverse';
+      }
       setDrifters((prev) => [...prev, drifter]);
-      timer = setTimeout(spawn, drifter.seconds * between(GAP_MIN, GAP_MAX) * 1000);
+      timer = setTimeout(spawn, gapSeconds * 1000);
     };
     // 開いてすぐは誰もいないので、最初の 1 体は早めに出す
     timer = setTimeout(spawn, 800);
@@ -115,7 +128,13 @@ export function DriftingPlayers() {
           src={drifter.sprite}
           alt=""
           className="pixelated size-full"
-          style={{ rotate: `${drifter.rotate}deg` }}
+          style={
+            drifter.spin
+              ? {
+                  animation: `water-shooting-spin ${SPIN_TURN_SECONDS}s linear infinite ${drifter.spin}`,
+                }
+              : { rotate: `${drifter.rotate}deg` }
+          }
         />
       </div>
     );

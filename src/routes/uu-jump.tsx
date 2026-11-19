@@ -127,7 +127,7 @@ function UuJumpRanking() {
         </div>
       </header>
 
-      <section className="flex flex-col gap-3 border-4 border-foreground bg-card/80 px-3 py-4 sm:px-5">
+      <section className="flex flex-col gap-3 border-4 border-foreground bg-(--panel)/80 px-3 py-4 sm:px-5">
         {/* マップの切り替えは左、並べ替えは右。ランキングはマップごと */}
         <div className="grid grid-cols-2 items-end gap-3 sm:flex sm:flex-wrap">
           {selectedMap !== undefined && (

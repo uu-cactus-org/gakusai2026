@@ -12,10 +12,10 @@ import { RankBadge, medalTint } from './rank-badge';
 import { formatClearTime } from './runs';
 import type { UuJumpRun } from './ranking';
 
-// 見出しの行は、題字と同じ焦げ茶の地に黄色い字。TableHead が持つ字の色に勝たせるため ! を付ける
+// 見出しの行は、れんがの茶色の地に、生成りの字。TableHead が持つ字の色に勝たせるため ! を付ける
 const HEAD = 'text-primary-foreground!';
 
-/** UU-JUMP のランキングの表。速い順。マップは画面の側で選ぶので、列には出さない。狭い画面では、記録した時刻を隠す。 */
+/** UU-JUMP のランキングの表。速い順。マップは画面の側で選ぶので、列には出さない。狭い画面では、記録した時刻を隠す。行の高さは、WaterShooting の表と同じ。 */
 export function UuJumpRankingTable({ runs }: { runs: UuJumpRun[] }) {
   return (
     <Table>
@@ -30,8 +30,8 @@ export function UuJumpRankingTable({ runs }: { runs: UuJumpRun[] }) {
       </TableHeader>
       <TableBody>
         {runs.map((run) => (
-          <TableRow key={run.id} style={{ backgroundColor: medalTint(run.rank) }}>
-            <TableCell className="text-center text-3xl leading-none">
+          <TableRow key={run.id} className="h-11" style={{ backgroundColor: medalTint(run.rank) }}>
+            <TableCell className="text-center text-2xl leading-none">
               <RankBadge rank={run.rank} />
             </TableCell>
             <TableCell className="text-right font-digits text-2xl leading-none tabular-nums">

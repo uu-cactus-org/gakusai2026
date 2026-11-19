@@ -23,12 +23,16 @@ function ResultBadge({ run }: { run: WaterShootingRun }) {
 
 const stageText = (run: WaterShootingRun) => `${run.reachedStage} / ${run.totalStages}`;
 
+// 表は枠の端まで広げるので、両端の列に、枠の内側の余白を持たせる
+const EDGE = '[&>*:first-child]:pl-6 [&>*:last-child]:pr-6';
+
 /** 幅のある画面向けの表。 */
 function WideTable({ runs }: { runs: WaterShootingRun[] }) {
   return (
     <Table>
       <TableHeader>
-        <TableRow>
+        {/* 見出しの行は、背景が透けない地にして、記録の行より少し濃く見せる */}
+        <TableRow className={`bg-background hover:bg-background ${EDGE}`}>
           <TableHead className="text-right">順位</TableHead>
           <TableHead className="text-right">スコア</TableHead>
           <TableHead>難易度</TableHead>
@@ -42,7 +46,7 @@ function WideTable({ runs }: { runs: WaterShootingRun[] }) {
       </TableHeader>
       <TableBody>
         {runs.map((run) => (
-          <TableRow key={run.id}>
+          <TableRow key={run.id} className={`border-border/50 ${EDGE}`}>
             <TableCell
               className="text-right font-display text-xl tabular-nums"
               style={{ color: rankColor(run.rank) }}
@@ -79,7 +83,7 @@ function WideTable({ runs }: { runs: WaterShootingRun[] }) {
 /** スマホ向け。列を並べると横にはみ出すので、1 件を 2 行にまとめる。 */
 function NarrowList({ runs }: { runs: WaterShootingRun[] }) {
   return (
-    <ol className="divide-y">
+    <ol className="divide-y divide-border/50">
       {runs.map((run) => (
         <li key={run.id} className="flex items-center gap-3 py-3">
           <span
