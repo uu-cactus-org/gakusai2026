@@ -52,7 +52,7 @@ Worker(`src/worker/auth.ts` の `requireAccess`)は、`/api/admin/*` で Access 
 
 ## 確かめ方
 
-シークレットウィンドウで `https://<ホスト>/api/admin/me` を開きます。GitHub のログインに進み、ログイン後に `{"email":"..."}` が出れば通っています。ログイン後の確認はまだしていません。
+シークレットウィンドウで `https://<ホスト>/api/admin/me` を開きます。GitHub のログインに進み、ログイン後に `{"authenticated":true,"name":"...","email":"..."}` が出れば通っています。`name` は Access の `get-identity` から取った GitHub の名前で、取れないときは `null` です。ログイン後の確認はまだしていません。
 
 ログイン画面が出ずに 403 が返る場合は、その経路が Access の宛先に入っていません。
 
