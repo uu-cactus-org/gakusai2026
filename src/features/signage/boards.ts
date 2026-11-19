@@ -14,7 +14,7 @@ export const SIGNAGE_BOARDS: readonly [SignageBoard, ...SignageBoard[]] = [
     title: 'WaterShooting',
     subtitle: 'スコアランキング',
     Component: WaterShootingSignageBoard,
-    widthEm: 33,
+    widthEm: 37,
     themeClass: WATER_SHOOTING_THEME,
     Backdrop: WaterShootingSignageBackdrop,
   },

@@ -28,13 +28,24 @@ export function DifficultyLabel({ value }: { value: string }) {
 }
 
 /** キャラ。ゲームの絵を添える。知らないキャラは、名前だけ出す。 */
-export function PlayerLabel({ value, showName = true }: { value: string; showName?: boolean }) {
+export function PlayerLabel({
+  value,
+  showName = true,
+  nameClassName,
+}: {
+  value: string;
+  showName?: boolean;
+  /** 絵に添える名前に付けるクラス。画面の広さで出し分けるときに使う。絵が無いキャラの名前には付けない */
+  nameClassName?: string;
+}) {
   const sprite = PLAYER_SPRITES[value];
   return (
     // inline-flex だと絵の下端が文字のベースラインに乗って、行の中で上に寄る。flex にして箱ごと中央に置かせる
     <span className="flex items-center gap-[0.3em]">
       {sprite && <img src={sprite} alt="" className="pixelated size-[2em] shrink-0" />}
-      {(showName || !sprite) && playerLabel(value)}
+      {sprite
+        ? showName && <span className={nameClassName}>{playerLabel(value)}</span>
+        : playerLabel(value)}
     </span>
   );
 }

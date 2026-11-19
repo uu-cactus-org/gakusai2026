@@ -2,15 +2,17 @@ import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { LastUpdated } from '#/components/last-updated';
 import type { SignageBoardProps } from '#/features/signage/types';
+import { formatRecordedAt } from '#/lib/format';
 import { mapsQueryOptions, rankingQueryOptions } from './ranking';
 import { Cactakun } from './cactakun';
 import { RankBadge, medalTint } from './rank-badge';
 import { formatClearTime } from './runs';
 
 // 列の幅。文字の大きさ(em)に合わせて、画面の大きさと一緒に伸び縮みする。
-// 中身が収まるぎりぎりに詰めてある。合計が小さいほど、縦長寄りの画面で文字を大きくできる(boards.ts の widthEm)
-// 順位、タイム、ジャンプ、PC
-const COLUMNS = '3em 4.6em 4.4em minmax(2em, 1fr)';
+// 中身が収まるぎりぎりに詰めてある。合計が小さいほど、縦長寄りの画面で文字を大きくできる(boards.ts の widthEm)。
+// 画面の幅が余るときは、列のあいだを均等に空けて、全体に散らす(justify-between)
+// 順位、タイム、ジャンプ、PC、記録した時刻
+const COLUMNS = '3em 4.6em 4.4em 3.6em 4em';
 
 /** サイネージの題字。ランキングの画面と同じ、サボテンと黄色い字。大きさは em で、画面と一緒に伸び縮みする。 */
 export function UuJumpSignageTitle() {
@@ -58,13 +60,13 @@ export function UuJumpSignageBoard({ page, rows, onPageCount }: SignageBoardProp
   return (
     <div className="flex h-full flex-col px-[1.5em]">
       <div
-        className="relative grid items-end gap-x-[1em] px-[0.6em] pb-[0.1em]"
+        className="relative grid items-end justify-between gap-x-[1em] px-[0.6em] pb-[0.1em]"
         style={{ gridTemplateColumns: COLUMNS }}
       >
-        {/* マップ名は、見出しの行の右端に載せる。行を 1 つ使わないので、その分だけ表を上へ広げられる。
-            字は見出しより大きいので、上の題字の右の空きへはみ出させる */}
-        <p className="absolute right-0 bottom-[0.4em] text-[1.2em] leading-none">{slot.name}</p>
-        {['順位', 'タイム', 'ジャンプ', 'PC'].map((heading, i) => (
+        {/* マップ名は、見出しの行の右端の上に載せる。行を 1 つ使わないので、その分だけ表を上へ広げられる。
+            右端の列の見出しに重ならないよう、見出しの字の上まで持ち上げて、題字の右の空きへはみ出させる */}
+        <p className="absolute right-0 bottom-[1em] text-[1.2em] leading-none">{slot.name}</p>
+        {['順位', 'タイム', 'ジャンプ', 'PC', '記録した時刻'].map((heading, i) => (
           <span key={heading} className={i < 3 ? 'text-right text-[0.5em]' : 'text-[0.5em]'}>
             {heading}
           </span>
@@ -79,7 +81,7 @@ export function UuJumpSignageBoard({ page, rows, onPageCount }: SignageBoardProp
           return (
             <li
               key={run.id}
-              className="grid items-center gap-x-[1em] border-[0.08em] border-foreground bg-card/90 px-[0.6em] whitespace-nowrap"
+              className="grid items-center justify-between gap-x-[1em] border-[0.08em] border-foreground bg-card/90 px-[0.6em] whitespace-nowrap"
               style={{
                 gridTemplateColumns: COLUMNS,
                 // 1〜3 位は、白い地の上にメダルの色を薄く重ねる
@@ -94,9 +96,13 @@ export function UuJumpSignageBoard({ page, rows, onPageCount }: SignageBoardProp
               </span>
               <span className="flex items-center justify-end gap-[0.3em] text-[0.8em] tabular-nums">
                 <Cactakun still className="size-[1.4em]" />
-                {run.jumpCount} 回
+                {/* 数字は 3 桁ぶんの幅を取って右にそろえる。2 桁と 3 桁が混ざっても、サボテンの位置がずれない */}
+                <span className="min-w-[1.5em] text-right">{run.jumpCount}</span>回
               </span>
               <span className="truncate text-[0.8em]">{run.deviceName}</span>
+              <span className="text-[0.7em] text-muted-foreground tabular-nums">
+                {formatRecordedAt(run.createdAt)}
+              </span>
             </li>
           );
         })}
