@@ -1,7 +1,7 @@
 import { createFileRoute, stripSearchParams } from '@tanstack/react-router';
 import { Maximize, Pause, Play } from 'lucide-react';
 import { useCallback, useEffect, useEffectEvent, useState } from 'react';
-import type { MouseEvent } from 'react';
+import type { CSSProperties, MouseEvent } from 'react';
 import { z } from 'zod';
 import { Button } from '#/components/ui/button';
 import { SIGNAGE_BOARDS } from '#/features/signage/boards';
@@ -15,11 +15,19 @@ const searchSchema = z.object({
   rows: z.coerce.number().int().min(3).max(20).default(10).catch(10),
   // 1 つのボードで送るページ数の上限(既定は 10 件 × 3 ページで 30 位まで)
   pages: z.coerce.number().int().min(1).max(20).default(3).catch(3),
+  // 画面の中央に 16:9 の枠を取り、その中に描く。余りは黒く塗る。
+  // 4:3 の iPad をミラーリングで 16:9 のモニターへ出し、モニターのズームで枠を画面いっぱいにするときに使う
+  wide: z.coerce.boolean().default(false).catch(false),
 });
 
 type Search = z.infer<typeof searchSchema>;
 
-const DEFAULT_SEARCH = { interval: 10, rows: 10, pages: 3 } as const satisfies Search;
+const DEFAULT_SEARCH = {
+  interval: 10,
+  rows: 10,
+  pages: 3,
+  wide: false,
+} as const satisfies Search;
 
 export const Route = createFileRoute('/signage')({
   validateSearch: searchSchema,
@@ -81,7 +89,7 @@ function useScreenWakeLock() {
 const FADE_MS = 300;
 
 function Signage() {
-  const { interval, rows, pages } = Route.useSearch();
+  const { interval, rows, pages, wide } = Route.useSearch();
   const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
   useScreenWakeLock();
 
@@ -174,16 +182,29 @@ function Signage() {
     else if (x > 0.75) step(1);
   };
 
-  return (
+  // 描く枠の大きさ。wide のときは、画面に収まるいちばん大きい 16:9
+  const frameWidth = wide ? 'min(100vw, 100vh * 16 / 9)' : '100vw';
+  const frameHeight = wide ? 'min(100vh, 100vw * 9 / 16)' : '100vh';
+
+  const frame = (
     <div
-      // 続けて押しても、文字の選択や、ダブルタップでの拡大が起きないようにする
-      className={`fixed inset-0 flex touch-manipulation flex-col overflow-hidden text-foreground select-none ${
-        isFullscreen ? 'cursor-none' : ''
-      }`}
+      // 続けて押しても、文字の選択や、ダブルタップでの拡大が起きないようにする。
+      // wide のときは、背景(fixed で敷いている)も枠の中に収まるよう、枠を fixed の基準にする(contain)
+      className={`flex touch-manipulation flex-col overflow-hidden text-foreground select-none ${
+        wide ? 'relative contain-layout contain-paint' : 'fixed inset-0'
+      } ${isFullscreen ? 'cursor-none' : ''}`}
       onClick={onClick}
-      // 文字の大きさを、画面いっぱいまで大きくする。縦は行が、横はボードの列が収まるところまで。
-      // 縦に要る高さ(em)は、1 行あたり 2.08(行 1.9 + すき間)と、題字・見出し・ページの点で 4.75
-      style={{ fontSize: `min(${100 / (rows * 2.08 + 4.75)}vh, ${100 / board.widthEm}vw)` }}
+      style={
+        {
+          width: wide ? `calc(${frameWidth})` : undefined,
+          height: wide ? `calc(${frameHeight})` : undefined,
+          // 文字の大きさを、枠いっぱいまで大きくする。縦は行が、横はボードの列が収まるところまで。
+          // 縦に要る高さ(em)は、1 行あたり 2.08(行 1.9 + すき間)と、題字・見出し・ページの点で 4.75
+          fontSize: `min(calc(${frameHeight} / ${rows * 2.08 + 4.75}), calc(${frameWidth} / ${board.widthEm}))`,
+          // 流れる背景が、1 枚ぶんの幅を枠の高さから出せるようにする
+          '--backdrop-height': wide ? `calc(${frameHeight})` : undefined,
+        } as CSSProperties
+      }
     >
       {board.Backdrop && <board.Backdrop step={slide.board + page} />}
 
@@ -261,4 +282,7 @@ function Signage() {
       )}
     </div>
   );
+
+  if (!wide) return frame;
+  return <div className="fixed inset-0 grid place-items-center bg-black">{frame}</div>;
 }

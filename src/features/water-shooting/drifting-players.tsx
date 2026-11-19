@@ -18,7 +18,7 @@ const SPEED_MAX = 0.03;
 const GAP_MIN = 0.5;
 const GAP_MAX = 1.15;
 // 回りながら進む 1 体が出る間(秒)。平均でこの間に 1 体になるよう、出すたびに確率で決める
-const SPIN_EVERY_SECONDS = 600;
+const SPIN_EVERY_SECONDS = 1200;
 // 回る速さ。1 回転にかける秒数
 const SPIN_TURN_SECONDS = 0.4;
 

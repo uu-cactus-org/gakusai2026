@@ -198,13 +198,14 @@
   image-rendering: pixelated;
 }
 
-/* 背景を横に流す。画像は横につながるので、1 枚ぶん動かして最初に戻す */
+/* 背景を横に流す。画像は横につながるので、1 枚ぶん動かして最初に戻す。 */
+/* 背景の高さが画面と違うとき(サイネージの 16:9 の枠)は、--backdrop-height で渡す */
 @keyframes backdrop-scroll {
   from {
     background-position-x: 0;
   }
   to {
-    background-position-x: calc(-100lvh * 16 / 9);
+    background-position-x: calc(var(--backdrop-height, 100lvh) * -16 / 9);
   }
 }
 
