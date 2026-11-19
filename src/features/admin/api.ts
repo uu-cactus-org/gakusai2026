@@ -1,4 +1,4 @@
-import { keepPreviousData, queryOptions } from '@tanstack/react-query';
+import { queryOptions } from '@tanstack/react-query';
 import type { InferResponseType } from 'hono/client';
 import { api } from '#/lib/api';
 
@@ -14,22 +14,24 @@ const uuJumpRunsApi = admin['uu-jump'].runs;
 export type AdminUuJumpRuns = InferResponseType<typeof uuJumpRunsApi.$get, 200>;
 export type AdminUuJumpRun = AdminUuJumpRuns['runs'][number];
 
-export type AdminUuJumpRunsParams = {
+/** テスト扱いの記録を、出すか、それだけにするか、除くか。 */
+export type TestFilter = 'all' | 'only' | 'exclude';
+
+/** どのゲームの記録の一覧にも共通の引数。並べ替えの種類だけ、ゲームごとに違う。 */
+export type AdminRunsBaseParams<Sort extends string> = {
   limit: number;
   offset: number;
-  sort: 'createdAt' | 'clearSeconds';
-  test: 'all' | 'only' | 'exclude';
+  sort: Sort;
+  test: TestFilter;
   deviceId?: string;
-  map?: string;
 };
 
-export type AdminRunsParams = {
-  limit: number;
-  offset: number;
-  sort: 'createdAt' | 'score';
-  test: 'all' | 'only' | 'exclude';
-  deviceId?: string;
+export type AdminRunsParams = AdminRunsBaseParams<'createdAt' | 'score'> & {
   result?: 'cleared' | 'game_over';
+};
+
+export type AdminUuJumpRunsParams = AdminRunsBaseParams<'createdAt' | 'clearSeconds'> & {
+  map?: string;
 };
 
 /** 失敗した応答を、画面に出せる文にする。 */
@@ -81,27 +83,19 @@ export const devicesQueryOptions = queryOptions({
   },
 });
 
-export function runsQueryOptions(params: AdminRunsParams) {
-  return queryOptions({
-    queryKey: adminKeys.runs(params),
-    queryFn: async () => {
-      const res = await runsApi.$get({
-        query: {
-          limit: String(params.limit),
-          offset: String(params.offset),
-          sort: params.sort,
-          test: params.test,
-          deviceId: params.deviceId,
-          result: params.result,
-        },
-      });
-      if (!res.ok) throw await failure(res, '記録の一覧を取得できませんでした');
-      return res.json();
+export async function fetchRuns(params: AdminRunsParams) {
+  const res = await runsApi.$get({
+    query: {
+      limit: String(params.limit),
+      offset: String(params.offset),
+      sort: params.sort,
+      test: params.test,
+      deviceId: params.deviceId,
+      result: params.result,
     },
-    placeholderData: keepPreviousData,
-    // 当日は記録が増え続けるので、開いたままでも新しい記録が見えるようにする
-    refetchInterval: 15_000,
   });
+  if (!res.ok) throw await failure(res, '記録の一覧を取得できませんでした');
+  return res.json();
 }
 
 export async function renameDevice({ id, name }: { id: string; name: string }) {
@@ -122,26 +116,19 @@ export async function deleteRun(id: number) {
   return res.json();
 }
 
-export function uuJumpRunsQueryOptions(params: AdminUuJumpRunsParams) {
-  return queryOptions({
-    queryKey: adminKeys.uuJumpRuns(params),
-    queryFn: async () => {
-      const res = await uuJumpRunsApi.$get({
-        query: {
-          limit: String(params.limit),
-          offset: String(params.offset),
-          sort: params.sort,
-          test: params.test,
-          deviceId: params.deviceId,
-          map: params.map,
-        },
-      });
-      if (!res.ok) throw await failure(res, '記録の一覧を取得できませんでした');
-      return res.json();
+export async function fetchUuJumpRuns(params: AdminUuJumpRunsParams) {
+  const res = await uuJumpRunsApi.$get({
+    query: {
+      limit: String(params.limit),
+      offset: String(params.offset),
+      sort: params.sort,
+      test: params.test,
+      deviceId: params.deviceId,
+      map: params.map,
     },
-    placeholderData: keepPreviousData,
-    refetchInterval: 15_000,
   });
+  if (!res.ok) throw await failure(res, '記録の一覧を取得できませんでした');
+  return res.json();
 }
 
 export async function setUuJumpRunTest({ id, test }: { id: number; test: boolean }) {
