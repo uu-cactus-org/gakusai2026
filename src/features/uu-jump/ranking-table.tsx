@@ -13,6 +13,8 @@ import type { UuJumpRun } from './ranking';
 // 1〜3 位の色(金、銀、銅)。白い地の上で読める濃さにしている
 const RANK_COLORS = ['rgb(176 128 0)', 'rgb(104 112 124)', 'rgb(160 90 40)'];
 
+export const rankColor = (rank: number): string | undefined => RANK_COLORS[rank - 1];
+
 /** UU-JUMP のランキングの表。速い順。マップは画面の側で選ぶので、列には出さない。狭い画面では、記録した時刻を隠す。 */
 export function UuJumpRankingTable({ runs }: { runs: UuJumpRun[] }) {
   return (
@@ -31,7 +33,7 @@ export function UuJumpRankingTable({ runs }: { runs: UuJumpRun[] }) {
           <TableRow key={run.id}>
             <TableCell
               className="text-right text-xl font-bold tabular-nums"
-              style={{ color: RANK_COLORS[run.rank - 1] }}
+              style={{ color: rankColor(run.rank) }}
             >
               {run.rank}
             </TableCell>

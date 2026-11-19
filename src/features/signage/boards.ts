@@ -1,3 +1,6 @@
+import { UuJumpSignageBackdrop } from '#/features/uu-jump/backdrop';
+import { UuJumpSignageBoard } from '#/features/uu-jump/signage-board';
+import { UU_JUMP_THEME } from '#/features/uu-jump/theme';
 import { WaterShootingSignageBackdrop } from '#/features/water-shooting/backdrop';
 import { WaterShootingSignageBoard } from '#/features/water-shooting/signage-board';
 import { WATER_SHOOTING_THEME } from '#/features/water-shooting/theme';
@@ -13,5 +16,13 @@ export const SIGNAGE_BOARDS: readonly [SignageBoard, ...SignageBoard[]] = [
     Component: WaterShootingSignageBoard,
     themeClass: WATER_SHOOTING_THEME,
     Backdrop: WaterShootingSignageBackdrop,
+  },
+  {
+    id: 'uu-jump',
+    title: 'UU-JUMP',
+    subtitle: 'タイムランキング',
+    Component: UuJumpSignageBoard,
+    themeClass: UU_JUMP_THEME,
+    Backdrop: UuJumpSignageBackdrop,
   },
 ];
