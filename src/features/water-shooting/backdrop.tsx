@@ -66,3 +66,8 @@ export function GameBackdrop({
     </div>
   );
 }
+
+/** サイネージ用の背景。ページを送るたびに、次のステージの背景へ切り替える。 */
+export function WaterShootingSignageBackdrop({ step }: { step: number }) {
+  return <GameBackdrop stage={step} scroll dim={0.55} />;
+}

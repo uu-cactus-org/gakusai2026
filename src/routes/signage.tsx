@@ -3,7 +3,7 @@ import { useCallback, useEffect, useEffectEvent, useState } from 'react';
 import { z } from 'zod';
 import { Button } from '#/components/ui/button';
 import { SIGNAGE_BOARDS } from '#/features/signage/boards';
-import { GameBackdrop } from '#/features/water-shooting/backdrop';
+import { useDocumentTheme } from '#/lib/use-document-theme';
 
 // 会場のモニターごとに URL で変えられる設定。読めない値は既定に戻す。
 const searchSchema = z.object({
@@ -86,6 +86,7 @@ function Signage() {
   const [pageCounts, setPageCounts] = useState<Record<string, number>>({});
 
   const board = SIGNAGE_BOARDS[slide.board] ?? SIGNAGE_BOARDS[0];
+  useDocumentTheme(board.themeClass);
   const pageCount = pageCounts[board.id] ?? 1;
   // 記録が消されてページが減っても、無いページを映さない
   const page = Math.min(slide.page, pageCount - 1);
@@ -144,14 +145,13 @@ function Signage() {
 
   return (
     <div
-      className={`dark fixed inset-0 flex flex-col overflow-hidden text-foreground ${
+      className={`fixed inset-0 flex flex-col overflow-hidden text-foreground ${
         isFullscreen ? 'cursor-none' : ''
       }`}
       // 文字の大きさを画面に合わせる。行数が増えたら、その分だけ小さくする
       style={{ fontSize: `min(${45 / rows}vh, 2vw)` }}
     >
-      {/* ページを送るたびに、次のステージの背景へ切り替える */}
-      <GameBackdrop stage={slide.board + page} scroll dim={0.55} />
+      {board.Backdrop && <board.Backdrop step={slide.board + page} />}
 
       <header className="flex items-baseline gap-[0.8em] px-[1.5em] pt-[0.4em] pb-[0.2em]">
         <h1 className="font-display text-[2.2em] leading-none text-primary">{board.title}</h1>

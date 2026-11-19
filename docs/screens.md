@@ -95,5 +95,13 @@ vpx scripts/seed-local.ts # 確認用の記録を 45 件入れる(ローカル�
 ## まだ無いもの
 
 - 見た目の作り込み。今は、ゲームの背景・キャラの絵・書体・配色を当てただけです。色は `src/styles.css` の変数、素材は `src/assets/` にあります。
+
+## 見た目の分け方
+
+トップ(`/`)と管理画面(`/admin`)は、どのゲームのものでもないので、共通の見た目(shadcn/ui の neutral)です。
+ゲームの見た目は、そのゲームの画面と、サイネージでそのゲームを映しているあいだだけ当たります。
+
+- 中身は `src/styles.css` の `.theme-water-shooting` です。`useDocumentTheme`(`src/lib/use-document-theme.ts`)が、画面を開いているあいだだけ `<html>` に付けます。
+- ゲームを足すときは、`.theme-<ゲーム名>` を足し、そのゲームの画面で `useDocumentTheme` を呼びます。サイネージには、`src/features/signage/boards.ts` の `themeClass` と `Backdrop` で渡します。
 - 自分の記録の強調。ゲームから「この記録」を指して開くには、記録が何ページ目かを引く API が要ります。
 - 記録をまとめて消す操作。今は 1 件ずつです。

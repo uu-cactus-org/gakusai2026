@@ -18,4 +18,8 @@ export type SignageBoard = {
   title: string;
   subtitle: string;
   Component: ComponentType<SignageBoardProps>;
+  /** このボードを映すあいだ、ページ全体に付ける見た目のクラス。無ければ共通の見た目 */
+  themeClass?: string;
+  /** 画面いっぱいに敷く背景。step はページを送るたびに 1 ずつ増える */
+  Backdrop?: ComponentType<{ step: number }>;
 };

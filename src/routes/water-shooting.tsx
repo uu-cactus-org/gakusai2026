@@ -3,6 +3,8 @@ import { Link, createFileRoute, stripSearchParams } from '@tanstack/react-router
 import { z } from 'zod';
 import { FilterSelect } from '#/components/filter-select';
 import { GameBackdrop } from '#/features/water-shooting/backdrop';
+import { WATER_SHOOTING_THEME } from '#/features/water-shooting/theme';
+import { useDocumentTheme } from '#/lib/use-document-theme';
 import { Button } from '#/components/ui/button';
 import {
   DIFFICULTIES,
@@ -62,6 +64,7 @@ const fromAll = <T extends string>(value: T | typeof ALL) =>
   value === ALL ? undefined : (value as T);
 
 function WaterShootingRanking() {
+  useDocumentTheme(WATER_SHOOTING_THEME);
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
 
