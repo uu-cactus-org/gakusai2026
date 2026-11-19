@@ -1,5 +1,6 @@
 import { Link, createFileRoute, stripSearchParams } from '@tanstack/react-router';
 import { useCallback, useEffect, useEffectEvent, useState } from 'react';
+import type { MouseEvent } from 'react';
 import { z } from 'zod';
 import { Button } from '#/components/ui/button';
 import { SIGNAGE_BOARDS } from '#/features/signage/boards';
@@ -143,11 +144,23 @@ function Signage() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
+  // 画面の左 1/4 を押したら前へ、右 1/4 を押したら次へ送る。タッチのモニターやマウスだけの席で使う
+  const onClick = (event: MouseEvent<HTMLDivElement>) => {
+    // 右上のボタンは、ボタンの働きだけをさせる
+    if ((event.target as Element).closest('a, button')) return;
+    const { left, width } = event.currentTarget.getBoundingClientRect();
+    const x = (event.clientX - left) / width;
+    if (x < 0.25) step(-1);
+    else if (x > 0.75) step(1);
+  };
+
   return (
     <div
-      className={`fixed inset-0 flex flex-col overflow-hidden text-foreground ${
+      // 続けて押しても、文字の選択や、ダブルタップでの拡大が起きないようにする
+      className={`fixed inset-0 flex touch-manipulation flex-col overflow-hidden text-foreground select-none ${
         isFullscreen ? 'cursor-none' : ''
       }`}
+      onClick={onClick}
       // 文字の大きさを、画面いっぱいまで大きくする。縦は行が、横はボードの列が収まるところまで。
       // 縦に要る高さ(em)は、1 行あたり 2.08(行 1.9 + すき間)と、題字・見出し・ページの点で 4.75
       style={{ fontSize: `min(${100 / (rows * 2.08 + 4.75)}vh, ${100 / board.widthEm}vw)` }}
