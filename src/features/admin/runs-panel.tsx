@@ -217,7 +217,7 @@ export function RunsPanel() {
       ) : data.runs.length === 0 ? (
         <div className="flex flex-col items-start gap-3 py-6">
           <p className="text-muted-foreground">
-            {data.total === 0 ? '条件に合う記録はありません。' : 'このページには記録がありません。'}
+            {data.total === 0 ? '条件に合う記録はありません' : 'このページには記録がありません。'}
           </p>
           {data.total > 0 && (
             <Button variant="outline" onClick={() => setPage(1)}>

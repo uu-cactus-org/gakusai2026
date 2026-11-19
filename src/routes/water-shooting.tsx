@@ -155,7 +155,7 @@ function WaterShootingRanking() {
             </p>
           )}
           {data.total === 0 ? (
-            <p className="py-8 text-muted-foreground">条件に合う記録は、まだありません。</p>
+            <p className="py-8 text-muted-foreground">条件に合う記録はありません</p>
           ) : data.runs.length === 0 ? (
             <div className="flex flex-col items-start gap-3 py-8">
               <p className="text-muted-foreground">このページには記録がありません。</p>
