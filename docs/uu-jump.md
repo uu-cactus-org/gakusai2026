@@ -128,7 +128,9 @@ WaterShooting のもの([water-shooting.md](water-shooting.md))と同じです�
 
 ## ゲーム側
 
-送信は、ゲームのリポジトリの `Assets/Scripts/Leaderboard/` にあります。WaterShooting の `LeaderboardClient` と同じ作りです。
+送信は、ゲームのリポジトリ(`uu-cactus-org/2025-team3-jump-game`)の **`2026` ブランチ**の `Assets/Scripts/Leaderboard/` にあります。
+今年の分は `2026` ブランチの中だけで完結させ、`main` にはマージしません。当日のビルドは `2026` ブランチから作ります。
+WaterShooting の `LeaderboardClient` と同じ作りです。
 
 - 起動時に、PC を登録します(`POST /api/devices`)。
 - ゴールしたときに、記録を送ります。つながらないときは 5 回まで試し、あきらめてもゲームは止まりません。
