@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import { FilterSelect } from '#/components/filter-select';
+import { LastUpdated } from '#/components/last-updated';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -113,9 +115,8 @@ export function RunsPanel() {
   const [message, setMessage] = useState<{ kind: 'done' | 'error'; text: string } | null>(null);
 
   const { data: devices } = useQuery(devicesQueryOptions);
-  const { data, isPending, error, isFetching, isPlaceholderData, refetch } = useQuery(
-    runsQueryOptions({ ...filters, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE }),
-  );
+  const { data, dataUpdatedAt, isPending, error, isFetching, isPlaceholderData, refetch } =
+    useQuery(runsQueryOptions({ ...filters, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE }));
 
   // 記録を変えたら、管理画面の一覧もランキングも取り直す
   const refreshAll = () => queryClient.invalidateQueries();
@@ -181,8 +182,15 @@ export function RunsPanel() {
           options={RESULT_OPTIONS}
           onChange={(value) => updateFilters({ result: value === ALL ? undefined : value })}
         />
-        <Button variant="outline" disabled={isFetching} onClick={() => refetch()}>
-          更新
+        <Button
+          variant="outline"
+          size="icon"
+          aria-label="更新"
+          title="更新"
+          disabled={isFetching}
+          onClick={() => refetch()}
+        >
+          <RefreshCw aria-hidden="true" className={isFetching ? 'animate-spin' : undefined} />
         </Button>
         {data && <p className="text-sm text-muted-foreground sm:ml-auto">{data.total} 件</p>}
       </div>
@@ -291,17 +299,32 @@ export function RunsPanel() {
 
       {data && (
         <nav className="flex items-center justify-between gap-3" aria-label="ページ送り">
-          <Button variant="outline" disabled={page <= 1} onClick={() => setPage(page - 1)}>
-            前へ
+          <Button
+            variant="outline"
+            size="icon"
+            aria-label="前のページ"
+            title="前のページ"
+            disabled={page <= 1}
+            onClick={() => setPage(page - 1)}
+          >
+            <ChevronLeft aria-hidden="true" />
           </Button>
           <span className="text-sm text-muted-foreground tabular-nums">
             {page} / {pageCount} ページ
           </span>
-          <Button variant="outline" disabled={page >= pageCount} onClick={() => setPage(page + 1)}>
-            次へ
+          <Button
+            variant="outline"
+            size="icon"
+            aria-label="次のページ"
+            title="次のページ"
+            disabled={page >= pageCount}
+            onClick={() => setPage(page + 1)}
+          >
+            <ChevronRight aria-hidden="true" />
           </Button>
         </nav>
       )}
+      <LastUpdated updatedAt={dataUpdatedAt} />
 
       <DeleteDialog
         run={deleting}

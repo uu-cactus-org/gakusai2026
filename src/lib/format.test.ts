@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vite-plus/test';
-import { formatPlayTime, formatRecordedAt, formatScore } from './format';
+import { formatElapsed, formatPlayTime, formatRecordedAt, formatScore } from './format';
 
 describe('formatScore', () => {
   test('3 桁ごとに区切る', () => {
@@ -38,5 +38,22 @@ describe('formatRecordedAt', () => {
 
   test('読めない値は空にする', () => {
     expect(formatRecordedAt('not a date')).toBe('');
+  });
+});
+
+describe('formatElapsed', () => {
+  test('1 分より短ければ秒で出す', () => {
+    expect(formatElapsed(0)).toBe('0秒前');
+    expect(formatElapsed(59_999)).toBe('59秒前');
+  });
+
+  test('1 分以上は分、1 時間以上は時間で出す', () => {
+    expect(formatElapsed(60_000)).toBe('1分前');
+    expect(formatElapsed(3_599_000)).toBe('59分前');
+    expect(formatElapsed(7_200_000)).toBe('2時間前');
+  });
+
+  test('時計のずれで負になっても 0 秒にする', () => {
+    expect(formatElapsed(-500)).toBe('0秒前');
   });
 });

@@ -29,3 +29,12 @@ export function formatRecordedAt(iso: string): string {
   if (Number.isNaN(date.getTime())) return '';
   return recordedAtFormat.format(date);
 }
+
+/** 経った時間(ミリ秒)を「n秒前」「n分前」「n時間前」にする。端数は切り捨てる。 */
+export function formatElapsed(ms: number): string {
+  const seconds = Math.max(0, Math.floor(ms / 1000));
+  if (seconds < 60) return `${seconds}秒前`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}分前`;
+  return `${Math.floor(minutes / 60)}時間前`;
+}

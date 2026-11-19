@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute, stripSearchParams } from '@tanstack/react-router';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { z } from 'zod';
 import { FilterSelect } from '#/components/filter-select';
+import { LastUpdated } from '#/components/last-updated';
 import { GameBackdrop } from '#/features/water-shooting/backdrop';
 import { WATER_SHOOTING_THEME } from '#/features/water-shooting/theme';
 import { useDocumentTheme } from '#/lib/use-document-theme';
@@ -69,7 +70,7 @@ function WaterShootingRanking() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
 
-  const { data, isPending, isError, isPlaceholderData, refetch } = useQuery(
+  const { data, dataUpdatedAt, isPending, isError, isPlaceholderData, refetch } = useQuery(
     rankingQueryOptions({
       limit: PAGE_SIZE,
       offset: (search.page - 1) * PAGE_SIZE,
@@ -175,24 +176,31 @@ function WaterShootingRanking() {
           <nav className="flex items-center justify-between gap-3" aria-label="ページ送り">
             <Button
               variant="outline"
+              size="icon"
+              aria-label="前のページ"
+              title="前のページ"
               disabled={search.page <= 1}
               onClick={() => setPage(search.page - 1)}
             >
-              前へ
+              <ChevronLeft aria-hidden="true" />
             </Button>
             <span className="text-sm text-muted-foreground tabular-nums">
               {search.page} / {pageCount} ページ
             </span>
             <Button
               variant="outline"
+              size="icon"
+              aria-label="次のページ"
+              title="次のページ"
               disabled={search.page >= pageCount}
               onClick={() => setPage(search.page + 1)}
             >
-              次へ
+              <ChevronRight aria-hidden="true" />
             </Button>
           </nav>
         </>
       )}
+      <LastUpdated updatedAt={dataUpdatedAt} />
     </main>
   );
 }

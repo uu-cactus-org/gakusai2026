@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { RefreshCw } from 'lucide-react';
 import { useState } from 'react';
+import { LastUpdated } from '#/components/last-updated';
 import { Button } from '#/components/ui/button';
 import { Input } from '#/components/ui/input';
 import {
@@ -85,7 +87,13 @@ function DeviceRow({ device }: { device: AdminDevice }) {
 /** PC の一覧と、表示名の変更。 */
 export function DevicesPanel() {
   const queryClient = useQueryClient();
-  const { data: devices, isPending, error, isFetching } = useQuery(devicesQueryOptions);
+  const {
+    data: devices,
+    dataUpdatedAt,
+    isPending,
+    error,
+    isFetching,
+  } = useQuery(devicesQueryOptions);
 
   if (isPending) return <p className="py-6 text-muted-foreground">読み込んでいます…</p>;
   if (!devices) {
@@ -110,11 +118,13 @@ export function DevicesPanel() {
         </p>
         <Button
           variant="outline"
-          size="sm"
+          size="icon-sm"
+          aria-label="更新"
+          title="更新"
           disabled={isFetching}
           onClick={() => queryClient.invalidateQueries({ queryKey: adminKeys.devices })}
         >
-          更新
+          <RefreshCw aria-hidden="true" className={isFetching ? 'animate-spin' : undefined} />
         </Button>
       </div>
       {error && <p className="text-sm text-destructive">{error.message}</p>}
@@ -137,6 +147,7 @@ export function DevicesPanel() {
           </TableBody>
         </Table>
       )}
+      <LastUpdated updatedAt={dataUpdatedAt} />
     </div>
   );
 }
