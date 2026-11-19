@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as LicensesRouteImport } from './routes/licenses'
 import { Route as SignageRouteImport } from './routes/signage'
 import { Route as UuJumpRouteImport } from './routes/uu-jump'
 import { Route as WaterShootingRouteImport } from './routes/water-shooting'
@@ -23,6 +24,11 @@ const IndexRoute = IndexRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LicensesRoute = LicensesRouteImport.update({
+  id: '/licenses',
+  path: '/licenses',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignageRoute = SignageRouteImport.update({
@@ -44,6 +50,7 @@ const WaterShootingRoute = WaterShootingRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/licenses': typeof LicensesRoute
   '/signage': typeof SignageRoute
   '/uu-jump': typeof UuJumpRoute
   '/water-shooting': typeof WaterShootingRoute
@@ -51,6 +58,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/licenses': typeof LicensesRoute
   '/signage': typeof SignageRoute
   '/uu-jump': typeof UuJumpRoute
   '/water-shooting': typeof WaterShootingRoute
@@ -59,21 +67,31 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/licenses': typeof LicensesRoute
   '/signage': typeof SignageRoute
   '/uu-jump': typeof UuJumpRoute
   '/water-shooting': typeof WaterShootingRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/signage' | '/uu-jump' | '/water-shooting'
+  fullPaths:
+    '/' | '/admin' | '/licenses' | '/signage' | '/uu-jump' | '/water-shooting'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/signage' | '/uu-jump' | '/water-shooting'
-  id: '__root__' | '/' | '/admin' | '/signage' | '/uu-jump' | '/water-shooting'
+  to: '/' | '/admin' | '/licenses' | '/signage' | '/uu-jump' | '/water-shooting'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/licenses'
+    | '/signage'
+    | '/uu-jump'
+    | '/water-shooting'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  LicensesRoute: typeof LicensesRoute
   SignageRoute: typeof SignageRoute
   UuJumpRoute: typeof UuJumpRoute
   WaterShootingRoute: typeof WaterShootingRoute
@@ -93,6 +111,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/licenses': {
+      id: '/licenses'
+      path: '/licenses'
+      fullPath: '/licenses'
+      preLoaderRoute: typeof LicensesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signage': {
@@ -122,6 +147,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  LicensesRoute: LicensesRoute,
   SignageRoute: SignageRoute,
   UuJumpRoute: UuJumpRoute,
   WaterShootingRoute: WaterShootingRoute,

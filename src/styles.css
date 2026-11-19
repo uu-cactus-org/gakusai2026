@@ -141,7 +141,39 @@
   --ring: rgb(90 116 48);
 }
 
+/*
+ * トップの見た目。OGP の画像(public/ogp.png)と同じ、夜空の配色。
+ * 色は WaterShooting の見た目と近いが、どちらのゲームのものでもないので分けている。
+ */
+.theme-festival {
+  --font-sans: 'PixelMplus12', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Jersey 10', 'PixelMplus12', ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-sans);
+
+  --radius: 0rem;
+  --background: rgb(8 15 32);
+  --foreground: rgb(235 247 255);
+  --card: rgb(18 31 51);
+  --card-foreground: rgb(235 247 255);
+  --popover: rgb(18 31 51);
+  --popover-foreground: rgb(235 247 255);
+  --primary: rgb(255 224 121);
+  --primary-foreground: rgb(18 31 51);
+  --secondary: rgb(50 76 106);
+  --secondary-foreground: rgb(235 247 255);
+  --muted: rgb(38 60 90);
+  --muted-foreground: rgb(176 207 225);
+  --accent: rgb(50 76 106);
+  --accent-foreground: rgb(235 247 255);
+  --destructive: rgb(255 106 145);
+  --border: rgb(50 76 106);
+  --input: rgb(80 110 145);
+  --ring: rgb(108 195 255);
+}
+
 @theme inline {
+  /* 情報研究会 CACTUS の色 */
+  --color-festival-green: #42b147;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -224,6 +256,53 @@
   to {
     rotate: 360deg;
   }
+}
+
+/* トップの題字。書体の 1 ドットぶん(12 ドットの書体なので 1em の 1/12)、右下へ濃い影をずらす */
+.festival-title {
+  --w: round(calc(1em / 12), 1px);
+  text-shadow: var(--w) var(--w) 0 rgb(5 10 24);
+}
+
+/*
+ * トップのフッターの地。ドット絵の床に見せる。上の縁に水色の線、その下に市松模様。
+ * 1 ドットの大きさは背景の絵(FestivalBackdrop)と同じで、狭い画面で 4px、広い画面で 6px。
+ */
+.festival-floor {
+  --dot: 4px;
+  /* 市松の 1 マスは 3 ドット */
+  --tile: calc(var(--dot) * 3);
+  border-top: var(--dot) solid rgb(56 100 134);
+  box-shadow: inset 0 var(--dot) 0 rgb(27 43 67);
+  background-color: rgb(14 25 43);
+  background-image: conic-gradient(
+    rgb(19 33 55) 25%,
+    transparent 0 50%,
+    rgb(19 33 55) 0 75%,
+    transparent 0
+  );
+  background-size: calc(var(--tile) * 2) calc(var(--tile) * 2);
+}
+
+@media (width >= 40rem) {
+  .festival-floor {
+    --dot: 6px;
+  }
+}
+
+/* 明るい緑の地に載せる白い字を、書体の 1 ドットぶん、濃い緑で縁取る */
+.festival-outline {
+  --edge: rgb(11 36 16);
+  --w: round(calc(1em / 12), 1px);
+  text-shadow:
+    var(--w) 0 var(--edge),
+    calc(var(--w) * -1) 0 var(--edge),
+    0 var(--w) var(--edge),
+    0 calc(var(--w) * -1) var(--edge),
+    var(--w) var(--w) var(--edge),
+    calc(var(--w) * -1) var(--w) var(--edge),
+    var(--w) calc(var(--w) * -1) var(--edge),
+    calc(var(--w) * -1) calc(var(--w) * -1) var(--edge);
 }
 
 /* UU-JUMP の題字。ゲームのタイトル画面と同じ、黄色い字に焦げ茶の縁取り */
