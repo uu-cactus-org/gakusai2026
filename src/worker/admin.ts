@@ -3,7 +3,7 @@ import { and, asc, count, desc, eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
 import { z } from 'zod';
-import { requireAccess } from './auth';
+import { fetchAccessName, requireAccess } from './auth';
 import { devices, waterShootingRuns as runs } from './db/schema';
 
 const runsQuerySchema = z.object({
@@ -27,7 +27,12 @@ function parseRunId(value: string): number | null {
 export const adminApp = new Hono<{ Bindings: Env }>()
   .use(requireAccess)
   // ログインできているかの確認用
-  .get('/me', (c) => c.json({ email: c.get('adminEmail') }))
+  .get('/me', async (c) => {
+    const token = c.get('accessToken');
+    // token が無いのはローカル開発だけ(requireAccess が検証を飛ばしたとき)
+    const name = token ? await fetchAccessName(c.env.ACCESS_TEAM_DOMAIN, token) : null;
+    return c.json({ authenticated: token !== null, name, email: c.get('adminEmail') });
+  })
   // 登録済みの PC。記録の数も付ける
   .get('/devices', async (c) => {
     const db = drizzle(c.env.DB);

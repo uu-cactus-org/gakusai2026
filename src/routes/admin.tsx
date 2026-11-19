@@ -36,7 +36,11 @@ function Admin() {
               ? 'ログインを確認しています…'
               : me.isError
                 ? ''
-                : (me.data.email ?? 'ローカル開発(ログインの確認なし)')}
+                : !me.data.authenticated
+                  ? 'ローカル開発(ログインの確認なし)'
+                  : me.data.name
+                    ? `${me.data.name} としてログイン中`
+                    : 'ログイン中'}
           </p>
         </div>
         <Link to="/water-shooting" className="text-sm hover:underline">

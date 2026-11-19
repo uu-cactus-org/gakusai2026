@@ -36,11 +36,12 @@ function getJwks(teamDomain: string) {
  */
 export const requireAccess = createMiddleware<{
   Bindings: Env;
-  Variables: { adminEmail: string | null };
+  Variables: { adminEmail: string | null; accessToken: string | null };
 }>(async (c, next) => {
   // ローカル開発には Access が無いので検証を飛ばす(cloudflare.config.ts で開発時だけ有効)
   if (c.env.ACCESS_DEV_BYPASS === 'true') {
     c.set('adminEmail', null);
+    c.set('accessToken', null);
     return next();
   }
 
@@ -59,8 +60,29 @@ export const requireAccess = createMiddleware<{
       audience,
     });
     c.set('adminEmail', typeof payload.email === 'string' ? payload.email : null);
+    c.set('accessToken', token);
   } catch {
     return c.json({ error: 'Cloudflare Access のトークンが無効です' }, 403);
   }
   await next();
 });
+
+/**
+ * ログインした人の名前(GitHub のプロフィールの名前)を Access に問い合わせる。
+ *
+ * JWT には名前が入らないので、Access の get-identity を使う。取れなくても管理の操作には
+ * 関係ないので、失敗は null にして握りつぶす。
+ */
+export async function fetchAccessName(teamDomain: string, token: string): Promise<string | null> {
+  try {
+    const res = await fetch(`${teamDomain}/cdn-cgi/access/get-identity`, {
+      headers: { Cookie: `CF_Authorization=${token}` },
+    });
+    if (!res.ok) return null;
+    const body: unknown = await res.json();
+    if (typeof body !== 'object' || body === null || !('name' in body)) return null;
+    return typeof body.name === 'string' && body.name.trim() !== '' ? body.name.trim() : null;
+  } catch {
+    return null;
+  }
+}
