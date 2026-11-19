@@ -113,16 +113,8 @@ function UuJumpRanking() {
       </header>
 
       <section className="flex flex-col gap-3 border-4 border-foreground bg-card/90 px-3 py-4 sm:px-5">
-        {/* 並べ替えと、マップの切り替え。ランキングはマップごと */}
+        {/* マップの切り替えは左、並べ替えは右。ランキングはマップごと */}
         <div className="grid grid-cols-2 items-end gap-3 sm:flex sm:flex-wrap">
-          <FilterSelect
-            label="並べ替え"
-            value={search.sort}
-            options={SORT_OPTIONS}
-            onChange={(sort) =>
-              navigate({ search: (prev) => ({ ...prev, sort, page: 1 }), replace: true })
-            }
-          />
           {selectedMap !== undefined && (
             <MapToggle
               maps={mapNames}
@@ -132,11 +124,21 @@ function UuJumpRanking() {
               }
             />
           )}
-          {data && selectedMap && (
-            <p className="col-span-2 text-right text-sm text-muted-foreground sm:ml-auto">
-              全 {data.total} 件
-            </p>
-          )}
+          <div className="col-span-2 flex items-end justify-end gap-3 sm:ml-auto">
+            {data && selectedMap && (
+              <p className="flex h-8 items-center text-sm text-muted-foreground">
+                全 {data.total} 件
+              </p>
+            )}
+            <FilterSelect
+              label="並べ替え"
+              value={search.sort}
+              options={SORT_OPTIONS}
+              onChange={(sort) =>
+                navigate({ search: (prev) => ({ ...prev, sort, page: 1 }), replace: true })
+              }
+            />
+          </div>
         </div>
 
         {maps.isPending ? (

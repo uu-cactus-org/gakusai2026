@@ -114,13 +114,8 @@ function WaterShootingRanking() {
         {data && <p className="text-sm text-muted-foreground">全 {data.total} 件</p>}
       </header>
 
+      {/* 絞り込みは左、並べ替えは右。役目が違うので、離して置く */}
       <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
-        <FilterSelect
-          label="並べ替え"
-          value={search.sort}
-          options={SORT_OPTIONS}
-          onChange={(sort) => setFilter({ sort })}
-        />
         <FilterSelect
           label="難易度"
           value={search.difficulty ?? ALL}
@@ -139,6 +134,14 @@ function WaterShootingRanking() {
           options={RESULT_OPTIONS}
           onChange={(value) => setFilter({ result: fromAll(value) })}
         />
+        <div className="sm:ml-auto">
+          <FilterSelect
+            label="並べ替え"
+            value={search.sort}
+            options={SORT_OPTIONS}
+            onChange={(sort) => setFilter({ sort })}
+          />
+        </div>
       </div>
 
       {isPending ? (

@@ -158,13 +158,8 @@ export function RunsBoard<
 
   return (
     <div className="flex flex-col gap-3">
+      {/* 絞り込みは左、並べ替えは右。役目が違うので、離して置く */}
       <div className="grid grid-cols-2 items-end gap-3 sm:flex sm:flex-wrap">
-        <FilterSelect
-          label="並べ替え"
-          value={sort}
-          options={sortOptions}
-          onChange={filtering(setSort)}
-        />
         <FilterSelect
           label="種類"
           value={test}
@@ -178,9 +173,19 @@ export function RunsBoard<
           onChange={filtering((value: string) => setDeviceId(value === ALL ? undefined : value))}
         />
         {extraFilter({ extra, setExtra: filtering(setExtra), data })}
-        {/* 件数と更新は、スマホでも右端に横に並べる。更新が一番右 */}
-        <div className="col-span-2 flex items-center justify-end gap-3 sm:ml-auto">
-          {data && <p className="text-sm leading-none text-muted-foreground">{data.total} 件</p>}
+        {/* 並べ替え、件数、更新は、スマホでも右端に横に並べる。更新が一番右 */}
+        <div className="col-span-2 flex items-end justify-end gap-3 sm:ml-auto">
+          {data && (
+            <p className="flex h-8 items-center text-sm leading-none text-muted-foreground">
+              {data.total} 件
+            </p>
+          )}
+          <FilterSelect
+            label="並べ替え"
+            value={sort}
+            options={sortOptions}
+            onChange={filtering(setSort)}
+          />
           <Button
             variant="outline"
             size="icon"
