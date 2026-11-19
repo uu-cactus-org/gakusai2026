@@ -9,8 +9,9 @@ import { useLayoutEffect } from 'react';
 export function useDocumentTheme(themeClass: string | undefined) {
   useLayoutEffect(() => {
     if (!themeClass) return;
-    // ゲームの見た目はどれも暗い色なので、shadcn/ui の dark: の指定も効かせる
-    const classes = [themeClass, 'dark'];
+    // 暗い配色の見た目は 'theme-xxx dark' のように、空白で区切って dark も渡す
+    // (shadcn/ui の dark: の指定を効かせるため)
+    const classes = themeClass.split(' ').filter(Boolean);
     document.documentElement.classList.add(...classes);
     return () => document.documentElement.classList.remove(...classes);
   }, [themeClass]);

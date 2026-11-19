@@ -14,6 +14,12 @@ function Home() {
           </Link>
         </li>
         <li>
+          <Link to="/uu-jump" className="block rounded-lg border p-4 hover:bg-muted">
+            <span className="block font-semibold">UU-JUMP</span>
+            <span className="text-sm text-muted-foreground">タイムランキングを見る(準備中)</span>
+          </Link>
+        </li>
+        <li>
           <Link to="/signage" className="block rounded-lg border p-4 hover:bg-muted">
             <span className="block font-semibold">サイネージ表示</span>
             <span className="text-sm text-muted-foreground">
