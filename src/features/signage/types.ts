@@ -20,6 +20,12 @@ export type SignageBoard = {
   /** 題字を、ゲームのロゴに差し替える。無ければ title と subtitle を文字で出す */
   Title?: ComponentType;
   Component: ComponentType<SignageBoardProps>;
+  /**
+   * このボードの 1 行が、横に収まるのに要る幅(em)。列の幅・すき間・左右の余白の合計。
+   * サイネージは、画面の幅がこの幅を下回らないところまで、文字を大きくする。
+   * 小さいほど、縦長寄りの画面(iPad など)で文字が大きくなる。列を足したら、ここも増やす
+   */
+  widthEm: number;
   /** このボードを映すあいだ、ページ全体に付ける見た目のクラス。無ければ共通の見た目 */
   themeClass?: string;
   /** 画面いっぱいに敷く背景。step はページを送るたびに 1 ずつ増える */

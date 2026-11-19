@@ -17,7 +17,7 @@ export function RankBadge({ rank }: { rank: number }) {
   const color = medalColor(rank);
   return (
     <span
-      className={`inline-flex h-[1.25em] min-w-[1.25em] items-center justify-center px-[0.15em] font-digits leading-none tabular-nums ${
+      className={`inline-flex h-[1.1em] min-w-[1.1em] items-center justify-center px-[0.15em] font-digits leading-none tabular-nums ${
         color ? 'border-[0.08em] border-foreground shadow-[0.08em_0.08em_0_var(--foreground)]' : ''
       }`}
       style={{ backgroundColor: color }}

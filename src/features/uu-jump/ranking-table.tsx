@@ -31,7 +31,7 @@ export function UuJumpRankingTable({ runs }: { runs: UuJumpRun[] }) {
       <TableBody>
         {runs.map((run) => (
           <TableRow key={run.id} style={{ backgroundColor: medalTint(run.rank) }}>
-            <TableCell className="text-center text-2xl">
+            <TableCell className="text-center text-3xl leading-none">
               <RankBadge rank={run.rank} />
             </TableCell>
             <TableCell className="text-right font-digits text-2xl leading-none tabular-nums">

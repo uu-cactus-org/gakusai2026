@@ -8,8 +8,9 @@ import { RankBadge, medalTint } from './rank-badge';
 import { formatClearTime } from './runs';
 
 // 列の幅。文字の大きさ(em)に合わせて、画面の大きさと一緒に伸び縮みする。
+// 中身が収まるぎりぎりに詰めてある。合計が小さいほど、縦長寄りの画面で文字を大きくできる(boards.ts の widthEm)
 // 順位、タイム、ジャンプ、PC
-const COLUMNS = '3em 8em 6em minmax(0, 1fr)';
+const COLUMNS = '3em 4.6em 4.4em minmax(2em, 1fr)';
 
 /** サイネージの題字。ランキングの画面と同じ、サボテンと黄色い字。大きさは em で、画面と一緒に伸び縮みする。 */
 export function UuJumpSignageTitle() {
@@ -56,11 +57,13 @@ export function UuJumpSignageBoard({ page, rows, onPageCount }: SignageBoardProp
 
   return (
     <div className="flex h-full flex-col px-[1.5em]">
-      <p className="pb-[0.1em] text-[0.9em] leading-tight">{slot.name}</p>
       <div
-        className="grid items-end gap-x-[1em] px-[0.6em] pb-[0.1em]"
+        className="relative grid items-end gap-x-[1em] px-[0.6em] pb-[0.1em]"
         style={{ gridTemplateColumns: COLUMNS }}
       >
+        {/* マップ名は、見出しの行の右端に載せる。行を 1 つ使わないので、その分だけ表を上へ広げられる。
+            字は見出しより大きいので、上の題字の右の空きへはみ出させる */}
+        <p className="absolute right-0 bottom-[0.4em] text-[1.2em] leading-none">{slot.name}</p>
         {['順位', 'タイム', 'ジャンプ', 'PC'].map((heading, i) => (
           <span key={heading} className={i < 3 ? 'text-right text-[0.5em]' : 'text-[0.5em]'}>
             {heading}
@@ -83,7 +86,7 @@ export function UuJumpSignageBoard({ page, rows, onPageCount }: SignageBoardProp
                 backgroundImage: tint && `linear-gradient(${tint}, ${tint})`,
               }}
             >
-              <span className="text-right text-[0.9em] leading-none">
+              <span className="text-right text-[1.3em] leading-none">
                 <RankBadge rank={run.rank} />
               </span>
               <span className="text-right font-digits text-[1.3em] leading-none tabular-nums">

@@ -148,8 +148,9 @@ function Signage() {
       className={`fixed inset-0 flex flex-col overflow-hidden text-foreground ${
         isFullscreen ? 'cursor-none' : ''
       }`}
-      // 文字の大きさを画面に合わせる。行数が増えたら、その分だけ小さくする
-      style={{ fontSize: `min(${45 / rows}vh, 2vw)` }}
+      // 文字の大きさを、画面いっぱいまで大きくする。縦は行が、横はボードの列が収まるところまで。
+      // 縦に要る高さ(em)は、1 行あたり 2.08(行 1.9 + すき間)と、題字・見出し・ページの点で 4.75
+      style={{ fontSize: `min(${100 / (rows * 2.08 + 4.75)}vh, ${100 / board.widthEm}vw)` }}
     >
       {board.Backdrop && <board.Backdrop step={slide.board + page} />}
 
@@ -162,7 +163,10 @@ function Signage() {
             <p className="text-[0.9em]">{board.subtitle}</p>
           </>
         )}
-        {paused && <p className="text-[0.7em] text-muted-foreground">一時停止中</p>}
+        {/* 止めていないあいだも、見えないまま場所を取らせる。出し入れすると、題字の行の高さが変わって表が上下に動く */}
+        <p className={`text-[0.7em] text-muted-foreground ${paused ? '' : 'invisible'}`}>
+          一時停止中
+        </p>
       </header>
 
       <main className="min-h-0 flex-1">

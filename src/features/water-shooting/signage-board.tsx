@@ -8,8 +8,9 @@ import { rankingQueryOptions } from './ranking';
 import type { WaterShootingRun } from './ranking';
 
 // 列の幅。文字の大きさ(em)に合わせて、画面の大きさと一緒に伸び縮みする。
+// 中身が収まるぎりぎりに詰めてある。合計が小さいほど、縦長寄りの画面で文字を大きくできる(boards.ts の widthEm)
 // 順位、スコア、難易度、キャラ、結果、プレイ時間、PC
-const COLUMNS = '3em 7.5em 6em 3em 8em 4em minmax(0, 1fr)';
+const COLUMNS = '2.2em 4.2em 4.4em 2em 5.4em 2.4em minmax(2em, 1fr)';
 
 const resultText = (run: WaterShootingRun) =>
   run.result === 'cleared' ? 'クリア' : `ステージ ${run.reachedStage}/${run.totalStages}`;
@@ -40,7 +41,7 @@ export function WaterShootingSignageBoard({
   return (
     <div className="flex h-full flex-col px-[1.5em]">
       <div
-        className="grid items-end gap-x-[1em] px-[0.6em] pb-[0.1em]"
+        className="grid items-end gap-x-[0.8em] px-[0.6em] pb-[0.1em]"
         style={{ gridTemplateColumns: COLUMNS }}
       >
         {['順位', 'スコア', '難易度', 'キャラ', '結果', '時間', 'PC'].map((heading, i) => (
@@ -56,7 +57,7 @@ export function WaterShootingSignageBoard({
         {data.runs.map((run) => (
           <li
             key={run.id}
-            className="grid items-center gap-x-[1em] border-[0.06em] bg-background/75 px-[0.6em] whitespace-nowrap"
+            className="grid items-center gap-x-[0.8em] border-[0.06em] bg-background/75 px-[0.6em] whitespace-nowrap"
             style={{ gridTemplateColumns: COLUMNS }}
           >
             <span
