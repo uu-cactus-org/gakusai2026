@@ -38,8 +38,8 @@ function Admin() {
                 ? ''
                 : !me.data.authenticated
                   ? 'ローカル開発(ログインの確認なし)'
-                  : me.data.name
-                    ? `${me.data.name} としてログイン中`
+                  : (me.data.login ?? me.data.name)
+                    ? `${me.data.login ?? me.data.name} としてログイン中`
                     : 'ログイン中'}
           </p>
         </div>
