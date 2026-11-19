@@ -1,6 +1,6 @@
 // ローカルの開発サーバーに、画面の確認用の記録を入れる。
 //
-//   vpx scripts/seed-local.ts            45 件入れる
+//   vpx scripts/seed-local.ts            WaterShooting と UU-JUMP に 45 件ずつ入れる
 //   vpx scripts/seed-local.ts --count 8  件数を変える
 //
 // 先に `vp run db:migrate:local` と `vp run dev` を済ませておく。鍵は .dev.vars の GAME_TOKEN を使う。
@@ -71,5 +71,32 @@ for (let i = 1; i <= count; i++) {
   }
 }
 
-console.log(`${count - failed} 件を送りました` + (failed > 0 ? `(失敗 ${failed} 件)` : ''));
+// UU-JUMP の記録。マップごとに、それらしいタイムを入れる
+const UU_JUMP_MAPS = [
+  ['マップ0', 40],
+  ['マップ1', 90],
+  ['マップ2', 200],
+] as const;
+for (let i = 1; i <= count; i++) {
+  const [mapName, baseSeconds] = pick(UU_JUMP_MAPS);
+  const clearSeconds = Math.round(baseSeconds * (1 + random() * 1.5) * 100) / 100;
+  const res = await fetch(`${ORIGIN}/api/uu-jump/runs`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({
+      runId: `seed-uu-jump-${i}`,
+      deviceId: `seed-pc-${1 + Math.floor(random() * 4)}`,
+      mapName,
+      clearSeconds,
+      jumpCount: Math.round(clearSeconds * (0.8 + random() * 0.6)),
+      test: false,
+    }),
+  });
+  if (!res.ok) {
+    failed++;
+    console.error(`seed-uu-jump-${i}: ${res.status} ${await res.text()}`);
+  }
+}
+
+console.log(`${count * 2 - failed} 件を送りました` + (failed > 0 ? `(失敗 ${failed} 件)` : ''));
 process.exit(failed > 0 ? 1 : 0);

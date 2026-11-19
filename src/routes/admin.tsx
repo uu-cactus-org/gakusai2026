@@ -6,8 +6,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '#/components/ui/tabs';
 import { meQueryOptions } from '#/features/admin/api';
 import { DevicesPanel } from '#/features/admin/devices-panel';
 import { RunsPanel } from '#/features/admin/runs-panel';
+import { UuJumpRunsPanel } from '#/features/admin/uu-jump-runs-panel';
 
-const TABS = ['runs', 'devices'] as const;
+const TABS = ['runs', 'uu-jump', 'devices'] as const;
 
 const searchSchema = z.object({
   tab: z.enum(TABS).default('runs').catch('runs'),
@@ -61,11 +62,15 @@ function Admin() {
           }}
         >
           <TabsList>
-            <TabsTrigger value="runs">WaterShooting の記録</TabsTrigger>
+            <TabsTrigger value="runs">WaterShooting</TabsTrigger>
+            <TabsTrigger value="uu-jump">UU-JUMP</TabsTrigger>
             <TabsTrigger value="devices">PC</TabsTrigger>
           </TabsList>
           <TabsContent value="runs">
             <RunsPanel />
+          </TabsContent>
+          <TabsContent value="uu-jump">
+            <UuJumpRunsPanel />
           </TabsContent>
           <TabsContent value="devices">
             <DevicesPanel />

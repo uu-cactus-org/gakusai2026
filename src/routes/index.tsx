@@ -16,7 +16,7 @@ function Home() {
         <li>
           <Link to="/uu-jump" className="block rounded-lg border p-4 hover:bg-muted">
             <span className="block font-semibold">UU-JUMP</span>
-            <span className="text-sm text-muted-foreground">タイムランキングを見る(準備中)</span>
+            <span className="text-sm text-muted-foreground">タイムランキングを見る</span>
           </Link>
         </li>
         <li>

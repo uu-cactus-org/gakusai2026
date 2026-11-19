@@ -48,7 +48,7 @@
 ### `GET /api/admin/devices`
 
 管理画面が使います。応答は `{ "devices": [{ "id": "...", "name": "PC3", "createdAt": "...", "runCount": 12 }] }` です。
-`runCount` は、その PC からの WaterShooting の記録の数です(テストの記録も数えます)。
+`runCount` は、その PC からの記録の数です。全ゲームの合計で、テストの記録も数えます。
 
 ### `PATCH /api/admin/devices/:id`
 

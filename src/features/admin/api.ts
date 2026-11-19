@@ -9,6 +9,20 @@ export type AdminRuns = InferResponseType<typeof runsApi.$get, 200>;
 export type AdminRun = AdminRuns['runs'][number];
 export type AdminDevice = InferResponseType<typeof admin.devices.$get, 200>['devices'][number];
 
+const uuJumpRunsApi = admin['uu-jump'].runs;
+
+export type AdminUuJumpRuns = InferResponseType<typeof uuJumpRunsApi.$get, 200>;
+export type AdminUuJumpRun = AdminUuJumpRuns['runs'][number];
+
+export type AdminUuJumpRunsParams = {
+  limit: number;
+  offset: number;
+  sort: 'createdAt' | 'clearSeconds';
+  test: 'all' | 'only' | 'exclude';
+  deviceId?: string;
+  map?: string;
+};
+
 export type AdminRunsParams = {
   limit: number;
   offset: number;
@@ -45,6 +59,7 @@ export const adminKeys = {
   me: ['admin', 'me'] as const,
   devices: ['admin', 'devices'] as const,
   runs: (params: AdminRunsParams) => ['admin', 'runs', params] as const,
+  uuJumpRuns: (params: AdminUuJumpRunsParams) => ['admin', 'uu-jump', 'runs', params] as const,
 };
 
 export const meQueryOptions = queryOptions({
@@ -103,6 +118,40 @@ export async function setRunTest({ id, test }: { id: number; test: boolean }) {
 
 export async function deleteRun(id: number) {
   const res = await runsApi[':id'].$delete({ param: { id: String(id) } });
+  if (!res.ok) throw await failure(res, '記録を消せませんでした');
+  return res.json();
+}
+
+export function uuJumpRunsQueryOptions(params: AdminUuJumpRunsParams) {
+  return queryOptions({
+    queryKey: adminKeys.uuJumpRuns(params),
+    queryFn: async () => {
+      const res = await uuJumpRunsApi.$get({
+        query: {
+          limit: String(params.limit),
+          offset: String(params.offset),
+          sort: params.sort,
+          test: params.test,
+          deviceId: params.deviceId,
+          map: params.map,
+        },
+      });
+      if (!res.ok) throw await failure(res, '記録の一覧を取得できませんでした');
+      return res.json();
+    },
+    placeholderData: keepPreviousData,
+    refetchInterval: 15_000,
+  });
+}
+
+export async function setUuJumpRunTest({ id, test }: { id: number; test: boolean }) {
+  const res = await uuJumpRunsApi[':id'].$patch({ param: { id: String(id) }, json: { test } });
+  if (!res.ok) throw await failure(res, '記録を更新できませんでした');
+  return res.json();
+}
+
+export async function deleteUuJumpRun(id: number) {
+  const res = await uuJumpRunsApi[':id'].$delete({ param: { id: String(id) } });
   if (!res.ok) throw await failure(res, '記録を消せませんでした');
   return res.json();
 }

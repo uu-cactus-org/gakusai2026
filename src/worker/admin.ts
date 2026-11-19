@@ -1,10 +1,10 @@
 import { zValidator } from '@hono/zod-validator';
-import { and, asc, count, desc, eq } from 'drizzle-orm';
+import { and, asc, count, desc, eq, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { fetchAccessIdentity, requireAccess } from './auth';
-import { devices, waterShootingRuns as runs } from './db/schema';
+import { devices, uuJumpRuns, waterShootingRuns as runs } from './db/schema';
 
 const runsQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(200).default(50),
@@ -16,6 +16,16 @@ const runsQuerySchema = z.object({
   test: z.enum(['all', 'only', 'exclude']).default('all'),
   deviceId: z.string().min(1).max(128).optional(),
   result: z.enum(['cleared', 'game_over']).optional(),
+});
+
+const uuJumpRunsQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(200).default(50),
+  offset: z.coerce.number().int().min(0).default(0),
+  // 既定は新しい順。clearSeconds は短い順
+  sort: z.enum(['createdAt', 'clearSeconds']).default('createdAt'),
+  test: z.enum(['all', 'only', 'exclude']).default('all'),
+  deviceId: z.string().min(1).max(128).optional(),
+  map: z.string().min(1).max(64).optional(),
 });
 
 function parseRunId(value: string): number | null {
@@ -43,11 +53,10 @@ export const adminApp = new Hono<{ Bindings: Env }>()
         id: devices.id,
         name: devices.displayName,
         createdAt: devices.createdAt,
-        runCount: count(runs.id),
+        // 全ゲームの記録の合計。列の名前だけだと内側の表の列と取り違えるので、表の名前から書く
+        runCount: sql<number>`(select count(*) from water_shooting_runs where water_shooting_runs.device_id = devices.id) + (select count(*) from uu_jump_runs where uu_jump_runs.device_id = devices.id)`,
       })
       .from(devices)
-      .leftJoin(runs, eq(runs.deviceId, devices.id))
-      .groupBy(devices.id)
       .orderBy(asc(devices.createdAt), asc(devices.displayName));
     return c.json({ devices: rows });
   })
@@ -134,6 +143,80 @@ export const adminApp = new Hono<{ Bindings: Env }>()
     if (id === null) return c.json({ error: 'id が数字ではありません' }, 400);
     const db = drizzle(c.env.DB);
     const [row] = await db.delete(runs).where(eq(runs.id, id)).returning({ id: runs.id });
+    if (!row) return c.json({ error: 'その id の記録はありません' }, 404);
+    return c.json({ id: row.id });
+  })
+  // UU-JUMP の記録の一覧。テストの記録も、どの PC からかも見える。順位は付けない
+  .get('/uu-jump/runs', zValidator('query', uuJumpRunsQuerySchema), async (c) => {
+    const db = drizzle(c.env.DB);
+    const query = c.req.valid('query');
+
+    const where = and(
+      query.test === 'all' ? undefined : eq(uuJumpRuns.isTest, query.test === 'only'),
+      query.deviceId ? eq(uuJumpRuns.deviceId, query.deviceId) : undefined,
+      query.map ? eq(uuJumpRuns.mapName, query.map) : undefined,
+    );
+    // 記録した時刻は秒までしか持たないので、記録順は id で並べる(id は記録した順に増える)
+    const orderBy =
+      query.sort === 'clearSeconds'
+        ? [asc(uuJumpRuns.clearSeconds), asc(uuJumpRuns.id)]
+        : [desc(uuJumpRuns.id)];
+
+    const [rows, [totalRow], maps] = await Promise.all([
+      db
+        .select({
+          id: uuJumpRuns.id,
+          runId: uuJumpRuns.runId,
+          deviceId: uuJumpRuns.deviceId,
+          deviceName: devices.displayName,
+          mapName: uuJumpRuns.mapName,
+          clearSeconds: uuJumpRuns.clearSeconds,
+          jumpCount: uuJumpRuns.jumpCount,
+          test: uuJumpRuns.isTest,
+          createdAt: uuJumpRuns.createdAt,
+        })
+        .from(uuJumpRuns)
+        .innerJoin(devices, eq(uuJumpRuns.deviceId, devices.id))
+        .where(where)
+        .orderBy(...orderBy)
+        .limit(query.limit)
+        .offset(query.offset),
+      db.select({ total: count() }).from(uuJumpRuns).where(where),
+      // 絞り込みの選択肢。テストの記録だけのマップも含める
+      db
+        .selectDistinct({ name: uuJumpRuns.mapName })
+        .from(uuJumpRuns)
+        .orderBy(asc(uuJumpRuns.mapName)),
+    ]);
+
+    return c.json({
+      total: totalRow?.total ?? 0,
+      maps: maps.map((map) => map.name),
+      runs: rows,
+    });
+  })
+  // UU-JUMP の記録をテスト扱いにする/戻す
+  .patch('/uu-jump/runs/:id', zValidator('json', z.object({ test: z.boolean() })), async (c) => {
+    const id = parseRunId(c.req.param('id'));
+    if (id === null) return c.json({ error: 'id が数字ではありません' }, 400);
+    const db = drizzle(c.env.DB);
+    const [row] = await db
+      .update(uuJumpRuns)
+      .set({ isTest: c.req.valid('json').test })
+      .where(eq(uuJumpRuns.id, id))
+      .returning({ id: uuJumpRuns.id, test: uuJumpRuns.isTest });
+    if (!row) return c.json({ error: 'その id の記録はありません' }, 404);
+    return c.json(row);
+  })
+  // UU-JUMP の記録を 1 件消す
+  .delete('/uu-jump/runs/:id', async (c) => {
+    const id = parseRunId(c.req.param('id'));
+    if (id === null) return c.json({ error: 'id が数字ではありません' }, 400);
+    const db = drizzle(c.env.DB);
+    const [row] = await db
+      .delete(uuJumpRuns)
+      .where(eq(uuJumpRuns.id, id))
+      .returning({ id: uuJumpRuns.id });
     if (!row) return c.json({ error: 'その id の記録はありません' }, 404);
     return c.json({ id: row.id });
   });

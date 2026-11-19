@@ -39,3 +39,23 @@ export const waterShootingRuns = sqliteTable('water_shooting_runs', {
     .notNull()
     .default(sql`(unixepoch())`),
 });
+
+// UU-JUMP の 1 回のプレイ。ゴールしたときに、ゲームが 1 行送ってくる(途中でやめたプレイは来ない)。
+export const uuJumpRuns = sqliteTable('uu_jump_runs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  // ゲームがプレイごとに作る ID。送り直しで同じプレイが 2 行にならないようにする
+  runId: text('run_id').notNull().unique(),
+  deviceId: text('device_id')
+    .notNull()
+    .references(() => devices.id),
+  // ゲームのマップの名前(「マップ0」など)。ランキングはマップごとに分ける
+  mapName: text('map_name').notNull(),
+  // ゴールまでの秒数。順位はこの値で決める(短いほうが上)
+  clearSeconds: real('clear_seconds').notNull(),
+  jumpCount: integer('jump_count').notNull(),
+  // エディターやデバッグ用のビルドからの記録。ランキングには出さない
+  isTest: integer('is_test', { mode: 'boolean' }).notNull().default(false),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
