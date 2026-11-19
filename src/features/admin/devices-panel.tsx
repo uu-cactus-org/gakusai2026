@@ -112,13 +112,11 @@ export function DevicesPanel() {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-sm text-muted-foreground">
-          {devices.length} 台。表示名は、ランキングと中継の管理画面に出ます。
-        </p>
+      <div className="flex items-center justify-end gap-3">
+        <p className="text-sm leading-none text-muted-foreground">{devices.length} 件</p>
         <Button
           variant="outline"
-          size="icon-sm"
+          size="icon"
           aria-label="更新"
           title="更新"
           disabled={isFetching}
