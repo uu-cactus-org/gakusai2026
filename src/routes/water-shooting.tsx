@@ -4,7 +4,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { z } from 'zod';
 import { FilterSelect } from '#/components/filter-select';
 import { LastUpdated } from '#/components/last-updated';
-import { GameBackdrop } from '#/features/water-shooting/backdrop';
+import { RotatingGameBackdrop } from '#/features/water-shooting/backdrop';
 import { WATER_SHOOTING_THEME } from '#/features/water-shooting/theme';
 import { useDocumentTheme } from '#/lib/use-document-theme';
 import { Button } from '#/components/ui/button';
@@ -90,7 +90,7 @@ function WaterShootingRanking() {
 
   return (
     <main className="mx-auto flex max-w-5xl flex-col gap-4 p-4 sm:p-6">
-      <GameBackdrop stage={0} />
+      <RotatingGameBackdrop />
       <header className="flex flex-wrap items-end justify-between gap-2">
         <div>
           <Button

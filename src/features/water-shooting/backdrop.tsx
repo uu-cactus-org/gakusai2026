@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import back1 from '#/assets/water-shooting/bg_stage1_back.png';
 import middle1 from '#/assets/water-shooting/bg_stage1_middle.png';
 import back2 from '#/assets/water-shooting/bg_stage2_back.png';
@@ -65,6 +66,27 @@ export function GameBackdrop({
       <div className="absolute inset-0 bg-background" style={{ opacity: dim }} />
     </div>
   );
+}
+
+const ROTATE_MS = 30_000;
+
+const randomStage = () => Math.floor(Math.random() * STAGES.length);
+
+/**
+ * ステージの背景を、ランダムに選んで敷く。30 秒ごとに、今とは別のステージへ切り替える。
+ */
+export function RotatingGameBackdrop({ scroll, dim }: { scroll?: boolean; dim?: number }) {
+  const [stage, setStage] = useState(randomStage);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      // 1 〜 (枚数 - 1) だけずらすと、必ず今とは別のステージになる
+      setStage((prev) => prev + 1 + Math.floor(Math.random() * (STAGES.length - 1)));
+    }, ROTATE_MS);
+    return () => clearInterval(timer);
+  }, []);
+
+  return <GameBackdrop stage={stage} scroll={scroll} dim={dim} />;
 }
 
 /** サイネージ用の背景。ページを送るたびに、次のステージの背景へ切り替える。 */
