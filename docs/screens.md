@@ -105,3 +105,10 @@ vpx scripts/seed-local.ts # 確認用の記録を 45 件入れる(ローカル�
 - ゲームを足すときは、`.theme-<ゲーム名>` を足し、そのゲームの画面で `useDocumentTheme` を呼びます。サイネージには、`src/features/signage/boards.ts` の `themeClass` と `Backdrop` で渡します。
 - 自分の記録の強調。ゲームから「この記録」を指して開くには、記録が何ページ目かを引く API が要ります。
 - 記録をまとめて消す操作。今は 1 件ずつです。
+
+## 共有したときのカード(OGP)
+
+URL を SNS やチャットに貼ったときのカードは、`index.html` の `<head>` に書いています。画像は `public/ogp.png`(1200×630)です。
+
+- どの URL を貼っても、同じカードが出ます。画面ごとには変えていません。画面は 1 つの `index.html` をブラウザ側で描き分けているので、変えるには Worker で HTML を書き換える必要があります。
+- URL は絶対で書いています。独自ドメインを当てたら、`index.html` の `gakusai2026.uucactus-share.workers.dev` を書き換えます。

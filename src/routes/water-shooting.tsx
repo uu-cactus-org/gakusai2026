@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute, stripSearchParams } from '@tanstack/react-router';
+import { ArrowLeft } from 'lucide-react';
 import { z } from 'zod';
 import { FilterSelect } from '#/components/filter-select';
 import { GameBackdrop } from '#/features/water-shooting/backdrop';
@@ -91,11 +92,16 @@ function WaterShootingRanking() {
       <GameBackdrop stage={0} />
       <header className="flex flex-wrap items-end justify-between gap-2">
         <div>
-          <p className="text-sm text-muted-foreground">
-            <Link to="/" className="hover:underline">
-              ランキング一覧
-            </Link>
-          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="mb-3"
+            render={<Link to="/" />}
+            nativeButton={false}
+          >
+            <ArrowLeft aria-hidden="true" />
+            一覧に戻る
+          </Button>
           <h1 className="font-display text-5xl leading-none text-primary">
             WaterShooting{' '}
             <span className="block font-sans text-xl text-foreground sm:inline">ランキング</span>
