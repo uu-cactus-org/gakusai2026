@@ -123,7 +123,7 @@ vpx scripts/seed-local.ts # 確認用の記録を 45 件入れる(ローカル�
 
 ## 共有したときのカード(OGP)
 
-URL を SNS やチャットに貼ったときのカードは、`index.html` の `<head>` に書いています。画像は `public/ogp.png`(1200×630)です。
+URL を SNS やチャットに貼ったときのカードは、`index.html` の `<head>` に書いています。画像は `public/thumbnail.png`(1200×630)です。
 
 - どの URL を貼っても、同じカードが出ます。画面ごとには変えていません。画面は 1 つの `index.html` をブラウザ側で描き分けているので、変えるには Worker で HTML を書き換える必要があります。
 - URL は絶対で書いています。独自ドメインを当てたら、`index.html` の `gakusai2026.uucactus-share.workers.dev` を書き換えます。
