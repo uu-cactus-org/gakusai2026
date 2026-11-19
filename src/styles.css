@@ -205,6 +205,16 @@
   }
 }
 
+/* WaterShooting のランキングの背景を漂うキャラ。入る場所と抜ける場所は、1 体ごとに変数で渡す */
+@keyframes water-shooting-drift {
+  from {
+    translate: var(--drift-from);
+  }
+  to {
+    translate: var(--drift-to);
+  }
+}
+
 /* UU-JUMP の題字。ゲームのタイトル画面と同じ、黄色い字に焦げ茶の縁取り */
 .uu-jump-title {
   font-family: var(--font-display);
@@ -235,14 +245,4 @@
 
 .cactakun {
   animation: cactakun-charge 0.9s steps(4) infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .cactakun {
-    animation: none;
-  }
-
-  .backdrop-layer {
-    animation: none !important;
-  }
 }

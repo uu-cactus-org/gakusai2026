@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
+import { DriftingPlayers } from './drifting-players';
 import back1 from '#/assets/water-shooting/bg_stage1_back.png';
 import middle1 from '#/assets/water-shooting/bg_stage1_middle.png';
 import back2 from '#/assets/water-shooting/bg_stage2_back.png';
@@ -24,7 +26,7 @@ export const BACKDROP_STAGE_COUNT = STAGES.length;
 function Layer({ image, seconds }: { image: string; seconds: number | null }) {
   return (
     <div
-      className="backdrop-layer pixelated absolute inset-0 bg-size-[auto_100%] bg-repeat-x"
+      className="pixelated absolute inset-0 bg-size-[auto_100%] bg-repeat-x"
       style={{
         backgroundImage: `url(${image})`,
         animation: seconds === null ? undefined : `backdrop-scroll ${seconds}s linear infinite`,
@@ -41,6 +43,7 @@ export function WaterShootingBackdrop({
   stage,
   scroll = false,
   dim = 0.7,
+  children,
 }: {
   /** どのステージの背景か(0 始まり)。範囲を超えたら先頭へ戻る */
   stage: number;
@@ -48,6 +51,8 @@ export function WaterShootingBackdrop({
   scroll?: boolean;
   /** 幕の濃さ(0〜1) */
   dim?: number;
+  /** 背景の絵と幕のあいだに置くもの。幕の下なので、背景と同じ暗さになる */
+  children?: ReactNode;
 }) {
   const active = ((stage % STAGES.length) + STAGES.length) % STAGES.length;
   return (
@@ -63,6 +68,7 @@ export function WaterShootingBackdrop({
           <Layer image={middle} seconds={scroll ? 120 : null} />
         </div>
       ))}
+      {children}
       <div className="absolute inset-0 bg-background" style={{ opacity: dim }} />
     </div>
   );
@@ -75,7 +81,15 @@ const randomStage = () => Math.floor(Math.random() * STAGES.length);
 /**
  * ステージの背景を、ランダムに選んで敷く。30 秒ごとに、今とは別のステージへ切り替える。
  */
-export function RotatingWaterShootingBackdrop({ scroll, dim }: { scroll?: boolean; dim?: number }) {
+export function RotatingWaterShootingBackdrop({
+  scroll,
+  dim,
+  children,
+}: {
+  scroll?: boolean;
+  dim?: number;
+  children?: ReactNode;
+}) {
   const [stage, setStage] = useState(randomStage);
 
   useEffect(() => {
@@ -86,10 +100,18 @@ export function RotatingWaterShootingBackdrop({ scroll, dim }: { scroll?: boolea
     return () => clearInterval(timer);
   }, []);
 
-  return <WaterShootingBackdrop stage={stage} scroll={scroll} dim={dim} />;
+  return (
+    <WaterShootingBackdrop stage={stage} scroll={scroll} dim={dim}>
+      {children}
+    </WaterShootingBackdrop>
+  );
 }
 
-/** サイネージ用の背景。ページを送るたびに、次のステージの背景へ切り替える。 */
+/** サイネージ用の背景。ページを送るたびに、次のステージの背景へ切り替える。ランキングの画面と同じく、キャラを漂わせる。 */
 export function WaterShootingSignageBackdrop({ step }: { step: number }) {
-  return <WaterShootingBackdrop stage={step} scroll dim={0.55} />;
+  return (
+    <WaterShootingBackdrop stage={step} scroll dim={0.55}>
+      <DriftingPlayers />
+    </WaterShootingBackdrop>
+  );
 }

@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute, stripSearchParams } from '@tanstack/react-router';
-import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { z } from 'zod';
 import { FilterSelect } from '#/components/filter-select';
 import { LastUpdated } from '#/components/last-updated';
 import { RotatingWaterShootingBackdrop } from '#/features/water-shooting/backdrop';
+import { DriftingPlayers } from '#/features/water-shooting/drifting-players';
 import { WATER_SHOOTING_THEME } from '#/features/water-shooting/theme';
 import { useDocumentTheme } from '#/lib/use-document-theme';
 import { Button } from '#/components/ui/button';
@@ -93,25 +94,28 @@ function WaterShootingRanking() {
 
   return (
     <main className="mx-auto flex max-w-5xl flex-col gap-4 p-4 sm:p-6">
-      <RotatingWaterShootingBackdrop />
-      <header className="flex flex-wrap items-end justify-between gap-2">
-        <div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="mb-3"
-            render={<Link to="/" />}
-            nativeButton={false}
-          >
+      <RotatingWaterShootingBackdrop>
+        <DriftingPlayers />
+      </RotatingWaterShootingBackdrop>
+      <header className="flex flex-col gap-3">
+        {/* 左は一覧へ、右はもう一方のゲームのランキングへ */}
+        <nav className="flex items-center justify-between gap-2">
+          <Button variant="outline" size="sm" render={<Link to="/" />} nativeButton={false}>
             <ArrowLeft aria-hidden="true" />
             一覧に戻る
           </Button>
+          <Button variant="outline" size="sm" render={<Link to="/uu-jump" />} nativeButton={false}>
+            UU-JUMPのランキング
+            <ArrowRight aria-hidden="true" />
+          </Button>
+        </nav>
+        <div className="flex flex-wrap items-end justify-between gap-2">
           <h1 className="font-display text-5xl leading-none text-primary">
             WaterShooting{' '}
             <span className="block font-sans text-xl text-foreground sm:inline">ランキング</span>
           </h1>
+          {data && <p className="text-sm text-muted-foreground">全 {data.total} 件</p>}
         </div>
-        {data && <p className="text-sm text-muted-foreground">全 {data.total} 件</p>}
       </header>
 
       {/* 絞り込みは左、並べ替えは右。役目が違うので、離して置く */}

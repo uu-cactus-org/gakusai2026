@@ -1,12 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute, stripSearchParams } from '@tanstack/react-router';
-import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { z } from 'zod';
 import { FilterSelect } from '#/components/filter-select';
 import { LastUpdated } from '#/components/last-updated';
 import { Button } from '#/components/ui/button';
 import { UuJumpBackdrop } from '#/features/uu-jump/backdrop';
 import { Cactakun } from '#/features/uu-jump/cactakun';
+import { JumpingCactakuns } from '#/features/uu-jump/jumping-cactakuns';
 import { SORT_KEYS, mapsQueryOptions, rankingQueryOptions } from '#/features/uu-jump/ranking';
 import type { SortKey } from '#/features/uu-jump/ranking';
 import { UuJumpRankingTable } from '#/features/uu-jump/ranking-table';
@@ -98,12 +99,26 @@ function UuJumpRanking() {
 
   return (
     <main className="mx-auto flex max-w-5xl flex-col gap-4 p-4 sm:p-6">
-      <UuJumpBackdrop />
-      <header className="flex flex-col items-start gap-3">
-        <Button variant="outline" size="sm" render={<Link to="/" />} nativeButton={false}>
-          <ArrowLeft aria-hidden="true" />
-          一覧に戻る
-        </Button>
+      <UuJumpBackdrop>
+        <JumpingCactakuns />
+      </UuJumpBackdrop>
+      <header className="flex flex-col gap-3">
+        {/* 左は一覧へ、右はもう一方のゲームのランキングへ */}
+        <nav className="flex items-center justify-between gap-2">
+          <Button variant="outline" size="sm" render={<Link to="/" />} nativeButton={false}>
+            <ArrowLeft aria-hidden="true" />
+            一覧に戻る
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            render={<Link to="/water-shooting" />}
+            nativeButton={false}
+          >
+            WaterShootingのランキング
+            <ArrowRight aria-hidden="true" />
+          </Button>
+        </nav>
         <div className="flex items-end gap-3">
           <Cactakun />
           <h1 className="uu-jump-title text-5xl leading-none sm:text-6xl">
@@ -112,7 +127,7 @@ function UuJumpRanking() {
         </div>
       </header>
 
-      <section className="flex flex-col gap-3 border-4 border-foreground bg-card/90 px-3 py-4 sm:px-5">
+      <section className="flex flex-col gap-3 border-4 border-foreground bg-card/80 px-3 py-4 sm:px-5">
         {/* マップの切り替えは左、並べ替えは右。ランキングはマップごと */}
         <div className="grid grid-cols-2 items-end gap-3 sm:flex sm:flex-wrap">
           {selectedMap !== undefined && (
