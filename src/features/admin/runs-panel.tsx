@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, EyeOff, RefreshCw, Trash2, Undo2 } from 'lucide-react';
 import { useState } from 'react';
 import { FilterSelect } from '#/components/filter-select';
 import { LastUpdated } from '#/components/last-updated';
@@ -75,7 +75,7 @@ function DeleteDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>この記録を消しますか?</AlertDialogTitle>
           <AlertDialogDescription>
-            消した記録は元に戻せません。ランキングから外すだけなら「テスト扱いにする」を使ってください。
+            消した記録は元に戻せません。ランキングから外すだけなら「外す」を使ってください。
           </AlertDialogDescription>
         </AlertDialogHeader>
         {run && (
@@ -276,19 +276,25 @@ export function RunsPanel() {
                           variant="outline"
                           size="sm"
                           disabled={busy}
+                          title={
+                            run.test ? 'ランキングに戻す' : 'テスト扱いにして、ランキングから外す'
+                          }
                           onClick={() => toggleTest.mutate({ id: run.id, test: !run.test })}
                         >
-                          {run.test ? 'ランキングに戻す' : 'テスト扱いにする'}
+                          {run.test ? <Undo2 aria-hidden="true" /> : <EyeOff aria-hidden="true" />}
+                          {run.test ? '戻す' : '外す'}
                         </Button>
                         <Button
                           variant="destructive"
-                          size="sm"
+                          size="icon-sm"
+                          aria-label="消す"
+                          title="消す"
                           onClick={() => {
                             remove.reset();
                             setDeleting(run);
                           }}
                         >
-                          消す
+                          <Trash2 aria-hidden="true" />
                         </Button>
                       </div>
                     </TableCell>
