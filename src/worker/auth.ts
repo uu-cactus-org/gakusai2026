@@ -4,6 +4,7 @@ import { createRemoteJWKSet, jwtVerify } from 'jose';
 /**
  * ゲームからの書き込みを `Authorization: Bearer <GAME_TOKEN>` で守る。
  * 鍵はビルドに埋め込み、配布するビルドからは消す。
+ * 学祭が終わったら Worker の secret からも消す。鍵が無いあいだは、書き込みをすべて 503 で断る。
  */
 export const requireGame = createMiddleware<{ Bindings: Env }>(async (c, next) => {
   const token = c.env.GAME_TOKEN;

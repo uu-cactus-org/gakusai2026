@@ -56,13 +56,15 @@
 
 ## 鍵
 
-`GAME_TOKEN` は、ゲームのビルドに埋め込みます。使うのは学祭当日だけです。配布するビルドからは鍵を消し、当日が終わったら API も閉じます。
+`GAME_TOKEN` は、ゲームのビルドに埋め込みます。使うのは学祭当日だけです。配布するビルドからは鍵を消します。
+
+学祭が終わったら、Worker の secret から `GAME_TOKEN` を消します。鍵が無い Worker は、ゲームからの書き込み(PC の登録と、記録の追加)をすべて 503 で断ります(`src/worker/auth.ts` の `requireGame`)。データは増えなくなり、ランキングの表示と管理画面はそのまま使えます。
 
 ## スコア
 
 スコアの API は、ゲームごとに専用の形で作ります。
 
 - WaterShooting: [water-shooting.md](water-shooting.md)
-- UU-JUMP: まだ作っていません。
+- UU-JUMP: [uu-jump.md](uu-jump.md)
 
 スコアを送ってきた PC が未登録だった場合は、その場で登録します。
