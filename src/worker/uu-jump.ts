@@ -1,5 +1,5 @@
 import { zValidator } from '@hono/zod-validator';
-import { and, asc, count, eq, lt, or, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, lt, or, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
 import { z } from 'zod';
@@ -17,11 +17,16 @@ const runSchema = z.object({
   test: z.boolean().default(false),
 });
 
+// 並べ替えに使える項目
+const SORT_KEYS = ['clearSeconds', 'jumpCount', 'createdAt'] as const;
+
 const rankingQuerySchema = z.object({
   // どのマップのランキングか。マップをまたいだ順位は意味がないので、必ず指定する
   map: z.string().min(1).max(64),
   limit: z.coerce.number().int().min(1).max(100).default(20),
   offset: z.coerce.number().int().min(0).default(0),
+  // 並べ替え。clearSeconds は短い順、jumpCount は少ない順、createdAt は新しい順。順位はどれでもタイム順のまま
+  sort: z.enum(SORT_KEYS).default('clearSeconds'),
   // 1 を付けると、エディターやデバッグ用のビルドからの記録も混ぜる(動作確認用)
   includeTest: z.enum(['0', '1']).default('0'),
 });
@@ -99,7 +104,7 @@ export const uuJumpApp = new Hono<{ Bindings: Env }>()
       .orderBy(asc(runs.mapName));
     return c.json({ maps: rows });
   })
-  // マップごとのランキング。クリアまでが短い順。
+  // マップごとのランキング。既定はクリアまでが短い順。
   .get('/ranking', zValidator('query', rankingQuerySchema), async (c) => {
     const db = drizzle(c.env.DB);
     const query = c.req.valid('query');
@@ -109,22 +114,39 @@ export const uuJumpApp = new Hono<{ Bindings: Env }>()
       query.includeTest === '1' ? undefined : eq(runs.isTest, false),
     );
 
+    // 順位は、そのマップでのタイム順(同じタイムは先に記録したほうが上)。
+    // 並べ替えやページ送りをしても変わらないよう、先に全体へ順位を振ってから並べ替える。
+    const ranked = db
+      .select({
+        rank: sql<number>`row_number() over (order by ${runs.clearSeconds} asc, ${runs.id} asc)`.as(
+          'rank',
+        ),
+        id: runs.id,
+        mapName: runs.mapName,
+        clearSeconds: runs.clearSeconds,
+        jumpCount: runs.jumpCount,
+        test: runs.isTest,
+        deviceName: devices.displayName,
+        createdAt: runs.createdAt,
+      })
+      .from(runs)
+      .innerJoin(devices, eq(runs.deviceId, devices.id))
+      .where(where)
+      .as('ranked');
+
+    // 記録した時刻は秒までしか持たないので、記録順は id で並べる(id は記録した順に増える)
+    const orderBy =
+      query.sort === 'createdAt'
+        ? [desc(ranked.id)]
+        : query.sort === 'jumpCount'
+          ? [asc(ranked.jumpCount), asc(ranked.rank)]
+          : [asc(ranked.rank)];
+
     const [rows, [totalRow]] = await Promise.all([
       db
-        .select({
-          rank: sql<number>`row_number() over (order by ${runs.clearSeconds} asc, ${runs.id} asc)`,
-          id: runs.id,
-          mapName: runs.mapName,
-          clearSeconds: runs.clearSeconds,
-          jumpCount: runs.jumpCount,
-          test: runs.isTest,
-          deviceName: devices.displayName,
-          createdAt: runs.createdAt,
-        })
-        .from(runs)
-        .innerJoin(devices, eq(runs.deviceId, devices.id))
-        .where(where)
-        .orderBy(asc(runs.clearSeconds), asc(runs.id))
+        .select()
+        .from(ranked)
+        .orderBy(...orderBy)
         .limit(query.limit)
         .offset(query.offset),
       db.select({ total: count() }).from(runs).where(where),

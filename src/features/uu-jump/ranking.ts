@@ -8,6 +8,9 @@ export type UuJumpRanking = InferResponseType<typeof uuJump.ranking.$get, 200>;
 export type UuJumpRun = UuJumpRanking['runs'][number];
 export type UuJumpMap = InferResponseType<typeof uuJump.maps.$get, 200>['maps'][number];
 
+export const SORT_KEYS = ['clearSeconds', 'jumpCount', 'createdAt'] as const;
+export type SortKey = (typeof SORT_KEYS)[number];
+
 // 新しい記録を拾う間隔
 const REFETCH_INTERVAL_MS = 10_000;
 
@@ -25,6 +28,7 @@ export const mapsQueryOptions = queryOptions({
 /** あるマップのランキングの 1 ページ。マップが決まるまでは取りに行かない。 */
 export function rankingQueryOptions(params: {
   map: string | undefined;
+  sort?: SortKey;
   limit: number;
   offset: number;
 }) {
@@ -34,6 +38,7 @@ export function rankingQueryOptions(params: {
       const res = await uuJump.ranking.$get({
         query: {
           map: params.map ?? '',
+          sort: params.sort,
           limit: String(params.limit),
           offset: String(params.offset),
         },
