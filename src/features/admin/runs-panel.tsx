@@ -182,17 +182,20 @@ export function RunsPanel() {
           options={RESULT_OPTIONS}
           onChange={(value) => updateFilters({ result: value === ALL ? undefined : value })}
         />
-        <Button
-          variant="outline"
-          size="icon"
-          aria-label="更新"
-          title="更新"
-          disabled={isFetching}
-          onClick={() => refetch()}
-        >
-          <RefreshCw aria-hidden="true" className={isFetching ? 'animate-spin' : undefined} />
-        </Button>
-        {data && <p className="text-sm text-muted-foreground sm:ml-auto">{data.total} 件</p>}
+        {/* 件数と更新は、スマホでも右端に横に並べる。更新が一番右 */}
+        <div className="col-span-2 flex items-center justify-end gap-3 sm:ml-auto">
+          {data && <p className="text-sm leading-none text-muted-foreground">{data.total} 件</p>}
+          <Button
+            variant="outline"
+            size="icon"
+            aria-label="更新"
+            title="更新"
+            disabled={isFetching}
+            onClick={() => refetch()}
+          >
+            <RefreshCw aria-hidden="true" className={isFetching ? 'animate-spin' : undefined} />
+          </Button>
+        </div>
       </div>
 
       {message && (

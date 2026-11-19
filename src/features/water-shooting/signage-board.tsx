@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
+import { LastUpdated } from '#/components/last-updated';
 import type { SignageBoardProps } from '#/features/signage/types';
 import { formatPlayTime, formatScore } from '#/lib/format';
 import { DifficultyLabel, PlayerLabel, rankColor } from './run-labels';
@@ -20,7 +21,9 @@ export function WaterShootingSignageBoard({
   maxPages,
   onPageCount,
 }: SignageBoardProps) {
-  const { data } = useQuery(rankingQueryOptions({ limit: rows, offset: page * rows }));
+  const { data, dataUpdatedAt } = useQuery(
+    rankingQueryOptions({ limit: rows, offset: page * rows }),
+  );
 
   const pageCount = data ? Math.min(maxPages, Math.max(1, Math.ceil(data.total / rows))) : null;
   useEffect(() => {
@@ -77,6 +80,11 @@ export function WaterShootingSignageBoard({
           </li>
         ))}
       </ol>
+      {/* 画面の右下の隅に小さく出す(サイネージの画面全体が基準)。ページの点と同じ高さ */}
+      <LastUpdated
+        updatedAt={dataUpdatedAt}
+        className="absolute right-[3.4em] bottom-[0.9em] text-[0.45em] leading-none text-muted-foreground tabular-nums"
+      />
     </div>
   );
 }

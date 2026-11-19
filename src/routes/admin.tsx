@@ -29,20 +29,17 @@ function Admin() {
   return (
     <main className="mx-auto flex max-w-7xl flex-col gap-4 p-4 sm:p-6">
       <header className="flex flex-wrap items-end justify-between gap-2">
-        <div>
-          <h1 className="text-2xl font-bold">管理画面</h1>
-          <p className="text-sm text-muted-foreground">
-            {me.isPending
-              ? 'ログインを確認しています…'
-              : me.isError
-                ? ''
-                : !me.data.authenticated
-                  ? 'ローカル開発(ログインの確認なし)'
-                  : (me.data.login ?? me.data.name)
-                    ? `${me.data.login ?? me.data.name} としてログイン中`
-                    : 'ログイン中'}
-          </p>
-        </div>
+        <p className="text-sm text-muted-foreground">
+          {me.isPending
+            ? 'ログインを確認しています…'
+            : me.isError
+              ? ''
+              : !me.data.authenticated
+                ? 'ローカル開発(ログインの確認なし)'
+                : (me.data.login ?? me.data.name)
+                  ? `${me.data.login ?? me.data.name} としてログイン中`
+                  : 'ログイン中'}
+        </p>
         <Link to="/water-shooting" className="text-sm hover:underline">
           ランキングを見る
         </Link>
