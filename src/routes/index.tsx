@@ -70,7 +70,14 @@ function Home() {
         </ul>
 
         {/* 会場のモニター向けの表示。来場者が押すものではないので、小さく置く */}
-        <div className="flex justify-end">
+        <div className="flex items-end justify-between gap-4">
+          {/* 部員向けの zip の配布。合言葉が要るので、目立たせずに端へ置く */}
+          <Link
+            to="/games"
+            className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
+          >
+            部員用
+          </Link>
           <Link
             to="/signage"
             className="flex items-center gap-2 border-2 border-foreground bg-card px-3 py-1.5 text-sm shadow-[4px_4px_0_#ff6a91] transition-transform hover:-translate-y-0.5 active:translate-x-1 active:translate-y-1 active:shadow-none"

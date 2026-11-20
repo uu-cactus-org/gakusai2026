@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as GamesRouteImport } from './routes/games'
 import { Route as LicensesRouteImport } from './routes/licenses'
 import { Route as SignageRouteImport } from './routes/signage'
 import { Route as UuJumpRouteImport } from './routes/uu-jump'
@@ -24,6 +25,11 @@ const IndexRoute = IndexRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GamesRoute = GamesRouteImport.update({
+  id: '/games',
+  path: '/games',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LicensesRoute = LicensesRouteImport.update({
@@ -50,6 +56,7 @@ const WaterShootingRoute = WaterShootingRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/games': typeof GamesRoute
   '/licenses': typeof LicensesRoute
   '/signage': typeof SignageRoute
   '/uu-jump': typeof UuJumpRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/games': typeof GamesRoute
   '/licenses': typeof LicensesRoute
   '/signage': typeof SignageRoute
   '/uu-jump': typeof UuJumpRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/games': typeof GamesRoute
   '/licenses': typeof LicensesRoute
   '/signage': typeof SignageRoute
   '/uu-jump': typeof UuJumpRoute
@@ -75,13 +84,27 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/admin' | '/licenses' | '/signage' | '/uu-jump' | '/water-shooting'
+    | '/'
+    | '/admin'
+    | '/games'
+    | '/licenses'
+    | '/signage'
+    | '/uu-jump'
+    | '/water-shooting'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/licenses' | '/signage' | '/uu-jump' | '/water-shooting'
+  to:
+    | '/'
+    | '/admin'
+    | '/games'
+    | '/licenses'
+    | '/signage'
+    | '/uu-jump'
+    | '/water-shooting'
   id:
     | '__root__'
     | '/'
     | '/admin'
+    | '/games'
     | '/licenses'
     | '/signage'
     | '/uu-jump'
@@ -91,6 +114,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  GamesRoute: typeof GamesRoute
   LicensesRoute: typeof LicensesRoute
   SignageRoute: typeof SignageRoute
   UuJumpRoute: typeof UuJumpRoute
@@ -111,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/games': {
+      id: '/games'
+      path: '/games'
+      fullPath: '/games'
+      preLoaderRoute: typeof GamesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/licenses': {
@@ -147,6 +178,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  GamesRoute: GamesRoute,
   LicensesRoute: LicensesRoute,
   SignageRoute: SignageRoute,
   UuJumpRoute: UuJumpRoute,

@@ -5,6 +5,7 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import { fetchAccessIdentity, requireAccess } from './auth';
 import { devices, uuJumpRuns, waterShootingRuns } from './db/schema';
+import { adminGamesApp } from './games';
 
 const waterShootingRunsQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(200).default(50),
@@ -224,4 +225,6 @@ export const adminApp = new Hono<{ Bindings: Env }>()
       .returning({ id: uuJumpRuns.id });
     if (!row) return c.json({ error: 'その id の記録はありません' }, 404);
     return c.json({ id: row.id });
-  });
+  })
+  // 部員に配る zip のアップロードと削除。上の requireAccess が、この下の経路にも掛かる
+  .route('/games', adminGamesApp);

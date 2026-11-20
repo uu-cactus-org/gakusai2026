@@ -9,6 +9,7 @@
 | `/admin` とその下   | Access                          |
 | `/api/admin/*`      | Access と、Worker での JWT 検証 |
 | `POST /api/devices` | `GAME_TOKEN`                    |
+| `/api/games/*`      | 合言葉([games.md](games.md))    |
 | それ以外            | なし(公開)                      |
 | プレビューの全経路  | Access                          |
 
@@ -21,13 +22,16 @@
 - **宛先**
   - `gakusai2026.uucactus-share.workers.dev` / `admin*`
   - `gakusai2026.uucactus-share.workers.dev` / `api/admin/*`
+  - `2026.uucactus.com` / `admin*`
+  - `2026.uucactus.com` / `api/admin/*`
   - Workers: `gakusai2026` の「Worker のプレビュー URL」
 - **ポリシー**: `GitHub Organization Members`(許可)
 
 変えるときの注意:
 
 - 経路は `admin/*` ではなく `admin*` と書きます。前者は `/admin` そのものを含みません。
-- 独自ドメインを当てたら、そのホストでも `admin*` と `api/admin/*` を足します。
+- 独自ドメインを足すときは、そのホストでも `admin*` と `api/admin/*` を足します。アプリケーションは新しく作りません。作ると AUD タグが別になり、Worker の検証が 403 を返します。
+- `workers.dev` の URL は止めません。ゲームのビルドが、こちらへ記録を送っています。
 - Worker の **Access** タブで範囲を「すべてのトラフィック」にしません。本番の全体にかかります。
 
 ## Worker 側の設定
@@ -53,6 +57,8 @@ Worker(`src/worker/auth.ts` の `requireAccess`)は、`/api/admin/*` で Access 
 ## 確かめ方
 
 シークレットウィンドウで `https://<ホスト>/api/admin/me` を開きます。GitHub のログインに進み、ログイン後に `{"authenticated":true,"login":"...","name":"...","email":"..."}` が出れば通っています。`name` は Access の `get-identity` から取った GitHub のプロフィールの名前です。`login` は GitHub のユーザー名で、`get-identity` の `id` を GitHub の API(`/user/:id`)で引いています。どちらも取れないときは `null` です。
+
+2026-11-20 に、`2026.uucactus.com` でも、ログインしていない状態で `/admin` と `/api/admin/me` が Access のログインへ転送されることを確かめました。
 
 2026-11-19 に確かめました。ログインしていないブラウザは GitHub のログイン画面に進み、ログイン済みのブラウザでは `login` と `name` の入った応答が返りました。`/admin` も開け、左上にユーザー名が出て、記録と PC の一覧が読めました。
 

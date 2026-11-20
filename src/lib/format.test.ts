@@ -1,5 +1,11 @@
 import { describe, expect, test } from 'vite-plus/test';
-import { formatElapsed, formatPlayTime, formatRecordedAt, formatScore } from './format';
+import {
+  formatBytes,
+  formatElapsed,
+  formatPlayTime,
+  formatRecordedAt,
+  formatScore,
+} from './format';
 
 describe('formatScore', () => {
   test('3 桁ごとに区切る', () => {
@@ -55,5 +61,19 @@ describe('formatElapsed', () => {
 
   test('時計のずれで負になっても 0 秒にする', () => {
     expect(formatElapsed(-500)).toBe('0秒前');
+  });
+});
+
+describe('formatBytes', () => {
+  test('大きさに合った単位にする', () => {
+    expect(formatBytes(0)).toBe('0 B');
+    expect(formatBytes(1023)).toBe('1023 B');
+    expect(formatBytes(1536)).toBe('1.5 KB');
+    expect(formatBytes(300 * 1024 * 1024)).toBe('300 MB');
+    expect(formatBytes(1.25 * 1024 ** 3)).toBe('1.3 GB');
+  });
+
+  test('GB より上の単位は使わない', () => {
+    expect(formatBytes(2048 * 1024 ** 3)).toBe('2048 GB');
   });
 });
