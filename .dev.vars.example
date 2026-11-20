@@ -1,3 +1,5 @@
 # .dev.vars にコピーして使う(ローカル開発用)。本番は `cf` で secret として登録する。
 # ゲームのビルドに埋め込む鍵(PC の登録など)
 GAME_TOKEN=
+# zip の配布(/games)の合言葉。空のままだと、配布の API は 503 を返す
+GAMES_PASSPHRASE=

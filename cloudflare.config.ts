@@ -25,6 +25,13 @@ export default defineConfig(({ mode }) => ({
     env: {
       DB: bindings.d1({ name: 'gakusai2026', id: 'bf05b031-70ec-4619-8674-0e98bda25b64' }),
       GAME_TOKEN: bindings.secret(),
+      GAMES: bindings.r2({ name: 'gakusai2026-games' }),
+      // zip の一覧とダウンロードを開く合言葉。無いあいだは配布が止まる
+      GAMES_PASSPHRASE: bindings.secret(),
+      GAMES_LOGIN_LIMIT: bindings.rateLimit({
+        namespace: '2026',
+        simple: { limit: 8, period: 60 },
+      }),
       ACCESS_TEAM_DOMAIN: bindings.text(ACCESS_TEAM_DOMAIN),
       ACCESS_AUD: bindings.text(ACCESS_AUD),
       // ローカル開発(vp dev)のときだけ、Access の検証を飛ばす
