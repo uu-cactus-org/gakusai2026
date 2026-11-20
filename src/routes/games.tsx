@@ -107,7 +107,7 @@ function Games() {
         <ArrowLeft aria-hidden="true" />
         トップに戻る
       </Button>
-      <h1 className="text-xl font-semibold">ゲームの配布</h1>
+      <h1 className="text-xl font-semibold">ゲームのダウンロード</h1>
       {isPending ? (
         <p className="text-muted-foreground">読み込んでいます…</p>
       ) : !data ? (

@@ -1,5 +1,5 @@
 import { Link, createFileRoute } from '@tanstack/react-router';
-import { ArrowRight, Monitor } from 'lucide-react';
+import { ArrowRight, Gamepad2, Monitor } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { FestivalBackdrop } from '#/features/home/backdrop';
 import { FestivalFooter } from '#/features/home/footer';
@@ -68,6 +68,17 @@ function Home() {
             />
           </li>
         </ul>
+
+        <Link
+          to="/past-games"
+          className="flex items-center justify-between gap-3 border-2 border-foreground bg-card px-4 py-2.5 shadow-[6px_6px_0_#ffe079] transition-transform hover:-translate-y-0.5 active:translate-x-1 active:translate-y-1 active:shadow-none"
+        >
+          <span className="flex items-center gap-3">
+            <Gamepad2 aria-hidden="true" className="size-6 shrink-0 text-primary" />
+            過去のゲームはこちら
+          </span>
+          <ArrowRight aria-hidden="true" className="size-6 shrink-0 text-primary" />
+        </Link>
 
         {/* 会場のモニター向けの表示。来場者が押すものではないので、小さく置く */}
         <div className="flex items-end justify-between gap-4">

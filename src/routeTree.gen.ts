@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as GamesRouteImport } from './routes/games'
 import { Route as LicensesRouteImport } from './routes/licenses'
+import { Route as PastGamesRouteImport } from './routes/past-games'
 import { Route as SignageRouteImport } from './routes/signage'
 import { Route as UuJumpRouteImport } from './routes/uu-jump'
 import { Route as WaterShootingRouteImport } from './routes/water-shooting'
@@ -37,6 +38,11 @@ const LicensesRoute = LicensesRouteImport.update({
   path: '/licenses',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PastGamesRoute = PastGamesRouteImport.update({
+  id: '/past-games',
+  path: '/past-games',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignageRoute = SignageRouteImport.update({
   id: '/signage',
   path: '/signage',
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/games': typeof GamesRoute
   '/licenses': typeof LicensesRoute
+  '/past-games': typeof PastGamesRoute
   '/signage': typeof SignageRoute
   '/uu-jump': typeof UuJumpRoute
   '/water-shooting': typeof WaterShootingRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/games': typeof GamesRoute
   '/licenses': typeof LicensesRoute
+  '/past-games': typeof PastGamesRoute
   '/signage': typeof SignageRoute
   '/uu-jump': typeof UuJumpRoute
   '/water-shooting': typeof WaterShootingRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/games': typeof GamesRoute
   '/licenses': typeof LicensesRoute
+  '/past-games': typeof PastGamesRoute
   '/signage': typeof SignageRoute
   '/uu-jump': typeof UuJumpRoute
   '/water-shooting': typeof WaterShootingRoute
@@ -88,6 +97,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/games'
     | '/licenses'
+    | '/past-games'
     | '/signage'
     | '/uu-jump'
     | '/water-shooting'
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/games'
     | '/licenses'
+    | '/past-games'
     | '/signage'
     | '/uu-jump'
     | '/water-shooting'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/games'
     | '/licenses'
+    | '/past-games'
     | '/signage'
     | '/uu-jump'
     | '/water-shooting'
@@ -116,6 +128,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   GamesRoute: typeof GamesRoute
   LicensesRoute: typeof LicensesRoute
+  PastGamesRoute: typeof PastGamesRoute
   SignageRoute: typeof SignageRoute
   UuJumpRoute: typeof UuJumpRoute
   WaterShootingRoute: typeof WaterShootingRoute
@@ -151,6 +164,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LicensesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/past-games': {
+      id: '/past-games'
+      path: '/past-games'
+      fullPath: '/past-games'
+      preLoaderRoute: typeof PastGamesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signage': {
       id: '/signage'
       path: '/signage'
@@ -180,6 +200,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   GamesRoute: GamesRoute,
   LicensesRoute: LicensesRoute,
+  PastGamesRoute: PastGamesRoute,
   SignageRoute: SignageRoute,
   UuJumpRoute: UuJumpRoute,
   WaterShootingRoute: WaterShootingRoute,
