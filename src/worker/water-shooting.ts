@@ -4,6 +4,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { requireGame } from './auth';
+import { edgeCache } from './cache';
 import { devices, waterShootingRuns as runs } from './db/schema';
 import { registerDevice } from './devices';
 
@@ -24,6 +25,9 @@ const runSchema = z.object({
 
 // 並べ替えに使える項目
 const SORT_KEYS = ['score', 'baseScore', 'playSeconds', 'reachedStage', 'createdAt'] as const;
+
+// ランキングの応答をキャッシュに置く秒数
+const RANKING_CACHE_SECONDS = 5;
 
 const rankingQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
@@ -97,58 +101,63 @@ export const waterShootingApp = new Hono<{ Bindings: Env }>()
     return c.json({ id: run.id, rank, total, test: run.isTest }, inserted.length > 0 ? 201 : 200);
   })
   // ランキング。既定はスコアが高い順。並べ替えと絞り込みができる。
-  .get('/ranking', zValidator('query', rankingQuerySchema), async (c) => {
-    const db = drizzle(c.env.DB);
-    const query = c.req.valid('query');
+  .get(
+    '/ranking',
+    edgeCache(RANKING_CACHE_SECONDS, Object.keys(rankingQuerySchema.shape)),
+    zValidator('query', rankingQuerySchema),
+    async (c) => {
+      const db = drizzle(c.env.DB);
+      const query = c.req.valid('query');
 
-    const where = and(
-      query.includeTest === '1' ? undefined : eq(runs.isTest, false),
-      query.difficulty ? eq(runs.difficulty, query.difficulty) : undefined,
-      query.player ? eq(runs.player, query.player) : undefined,
-      query.result ? eq(runs.result, query.result) : undefined,
-    );
+      const where = and(
+        query.includeTest === '1' ? undefined : eq(runs.isTest, false),
+        query.difficulty ? eq(runs.difficulty, query.difficulty) : undefined,
+        query.player ? eq(runs.player, query.player) : undefined,
+        query.result ? eq(runs.result, query.result) : undefined,
+      );
 
-    // 順位は、絞り込んだ記録の中でのスコア順(同点は先に記録したほうが上)。
-    // 並べ替えやページ送りをしても変わらないよう、先に全体へ順位を振ってから並べ替える。
-    const ranked = db
-      .select({
-        rank: sql<number>`row_number() over (order by ${runs.score} desc, ${runs.id} asc)`.as(
-          'rank',
-        ),
-        id: runs.id,
-        score: runs.score,
-        baseScore: runs.baseScore,
-        result: runs.result,
-        difficulty: runs.difficulty,
-        player: runs.player,
-        playSeconds: runs.playSeconds,
-        reachedStage: runs.reachedStage,
-        totalStages: runs.totalStages,
-        test: runs.isTest,
-        deviceName: devices.displayName,
-        createdAt: runs.createdAt,
-      })
-      .from(runs)
-      .innerJoin(devices, eq(runs.deviceId, devices.id))
-      .where(where)
-      .as('ranked');
+      // 順位は、絞り込んだ記録の中でのスコア順(同点は先に記録したほうが上)。
+      // 並べ替えやページ送りをしても変わらないよう、先に全体へ順位を振ってから並べ替える。
+      const ranked = db
+        .select({
+          rank: sql<number>`row_number() over (order by ${runs.score} desc, ${runs.id} asc)`.as(
+            'rank',
+          ),
+          id: runs.id,
+          score: runs.score,
+          baseScore: runs.baseScore,
+          result: runs.result,
+          difficulty: runs.difficulty,
+          player: runs.player,
+          playSeconds: runs.playSeconds,
+          reachedStage: runs.reachedStage,
+          totalStages: runs.totalStages,
+          test: runs.isTest,
+          deviceName: devices.displayName,
+          createdAt: runs.createdAt,
+        })
+        .from(runs)
+        .innerJoin(devices, eq(runs.deviceId, devices.id))
+        .where(where)
+        .as('ranked');
 
-    const direction =
-      (query.order ?? (query.sort === 'playSeconds' ? 'asc' : 'desc')) === 'asc' ? asc : desc;
+      const direction =
+        (query.order ?? (query.sort === 'playSeconds' ? 'asc' : 'desc')) === 'asc' ? asc : desc;
 
-    // 記録した時刻は秒までしか持たないので、記録順は id で並べる(id は記録した順に増える)
-    const sortColumn = query.sort === 'createdAt' ? ranked.id : ranked[query.sort];
+      // 記録した時刻は秒までしか持たないので、記録順は id で並べる(id は記録した順に増える)
+      const sortColumn = query.sort === 'createdAt' ? ranked.id : ranked[query.sort];
 
-    const [rows, [totalRow]] = await Promise.all([
-      db
-        .select()
-        .from(ranked)
-        // 同じ値どうしは順位の順に並べる
-        .orderBy(direction(sortColumn), asc(ranked.rank))
-        .limit(query.limit)
-        .offset(query.offset),
-      db.select({ total: count() }).from(runs).where(where),
-    ]);
+      const [rows, [totalRow]] = await Promise.all([
+        db
+          .select()
+          .from(ranked)
+          // 同じ値どうしは順位の順に並べる
+          .orderBy(direction(sortColumn), asc(ranked.rank))
+          .limit(query.limit)
+          .offset(query.offset),
+        db.select({ total: count() }).from(runs).where(where),
+      ]);
 
-    return c.json({ total: totalRow?.total ?? 0, runs: rows });
-  });
+      return c.json({ total: totalRow?.total ?? 0, runs: rows });
+    },
+  );

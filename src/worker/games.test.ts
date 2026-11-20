@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vite-plus/test';
-import { parseRange, resolveRange } from './games';
+import { loginLimitKey, parseRange, resolveRange } from './games';
 import app from './index';
 
 // R2 に触る前で断る経路だけを確かめる。R2 を使う経路は、ローカルで動かして確かめる(docs/games.md)
@@ -164,5 +164,27 @@ describe('Range', () => {
   test('1 バイトも返せない範囲は断る', () => {
     expect(resolveRange({ start: 1000 }, 1000)).toBeUndefined();
     expect(resolveRange({ suffix: 0 }, 1000)).toBeUndefined();
+  });
+});
+
+describe('loginLimitKey', () => {
+  test('IPv4 はアドレスごとに数える', () => {
+    expect(loginLimitKey('203.0.113.7')).toBe('203.0.113.7');
+  });
+
+  test('IPv6 は、同じ /64 のアドレスをまとめて数える', () => {
+    const key = loginLimitKey('2001:db8:1:2::1');
+    expect(loginLimitKey('2001:db8:1:2:ffff:ffff:ffff:ffff')).toBe(key);
+    expect(loginLimitKey('2001:0db8:0001:0002:0000:0000:0000:0abc')).toBe(key);
+    expect(loginLimitKey('2001:db8:1:3::1')).not.toBe(key);
+  });
+
+  test('`::` が先頭の 64 ビットにかかっていても、0 を補って数える', () => {
+    expect(loginLimitKey('2001:db8::1')).toBe(loginLimitKey('2001:db8:0:0:1:2:3:4'));
+    expect(loginLimitKey('2001:db8::1')).not.toBe(loginLimitKey('2001:db8:0:1::1'));
+  });
+
+  test('ヘッダーが無ければ、まとめて 1 つとして数える', () => {
+    expect(loginLimitKey(undefined)).toBe('unknown');
   });
 });

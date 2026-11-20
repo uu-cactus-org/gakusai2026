@@ -156,12 +156,34 @@ async function serveGameFile(
 }
 
 /**
+ * 入力の回数を数える単位。IPv4 はアドレスごと、IPv6 は先頭の 64 ビットごと。
+ * IPv6 は 1 台に /64 がまるごと割り当てられるので、アドレスごとに数えると、
+ * アドレスを変えるだけで制限をすり抜けられる。
+ */
+export function loginLimitKey(ip: string | undefined): string {
+  // 本番では Cloudflare が必ず付ける。ローカルには無いので、まとめて 1 つとして数える
+  if (!ip) return 'unknown';
+  if (!ip.includes(':')) return ip;
+
+  // `::` で省かれた 0 を補って、先頭の 4 つの組を取り出す
+  const [head = '', tail] = ip.split('::');
+  const headGroups = head === '' ? [] : head.split(':');
+  let groups = headGroups;
+  if (tail !== undefined) {
+    const tailGroups = tail === '' ? [] : tail.split(':');
+    const omitted = Math.max(0, 8 - headGroups.length - tailGroups.length);
+    groups = [...headGroups, ...Array<string>(omitted).fill('0'), ...tailGroups];
+  }
+  const prefix = groups.slice(0, 4).map((group) => Number.parseInt(group, 16).toString(16));
+  return `${prefix.join(':')}::/64`;
+}
+
+/**
  * 合言葉の総当たりを防ぐ。同じ送信元からの入力を、決めた回数までにする(回数は cloudflare.config.ts)。
  * 数え方はおおよそで、厳密ではない。合言葉を長くしておくのと合わせて効かせる。
  */
 const limitLoginAttempts = createMiddleware<{ Bindings: Env }>(async (c, next) => {
-  // 本番では Cloudflare が必ず付ける。ローカルには無いので、まとめて 1 つとして数える
-  const key = c.req.header('CF-Connecting-IP') ?? 'unknown';
+  const key = loginLimitKey(c.req.header('CF-Connecting-IP'));
   const { success } = await c.env.GAMES_LOGIN_LIMIT.limit({ key });
   if (!success) {
     return c.json({ error: '入力の回数が多すぎます。1 分ほど待ってください' }, 429);

@@ -4,6 +4,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { requireGame } from './auth';
+import { edgeCache } from './cache';
 import { devices, uuJumpRuns as runs } from './db/schema';
 import { registerDevice } from './devices';
 
@@ -19,6 +20,9 @@ const runSchema = z.object({
 
 // 並べ替えに使える項目
 const SORT_KEYS = ['clearSeconds', 'jumpCount', 'createdAt'] as const;
+
+// ランキングとマップの一覧の応答をキャッシュに置く秒数
+const RANKING_CACHE_SECONDS = 5;
 
 const rankingQuerySchema = z.object({
   // どのマップのランキングか。マップをまたいだ順位は意味がないので、必ず指定する
@@ -94,7 +98,7 @@ export const uuJumpApp = new Hono<{ Bindings: Env }>()
     return c.json({ id: run.id, rank, total, test: run.isTest }, inserted.length > 0 ? 201 : 200);
   })
   // 記録があるマップの一覧。画面のマップの切り替えに使う。テストの記録だけのマップは出さない。
-  .get('/maps', async (c) => {
+  .get('/maps', edgeCache(RANKING_CACHE_SECONDS, []), async (c) => {
     const db = drizzle(c.env.DB);
     const rows = await db
       .select({ name: runs.mapName, count: count() })
@@ -105,52 +109,57 @@ export const uuJumpApp = new Hono<{ Bindings: Env }>()
     return c.json({ maps: rows });
   })
   // マップごとのランキング。既定はクリアまでが短い順。
-  .get('/ranking', zValidator('query', rankingQuerySchema), async (c) => {
-    const db = drizzle(c.env.DB);
-    const query = c.req.valid('query');
+  .get(
+    '/ranking',
+    edgeCache(RANKING_CACHE_SECONDS, Object.keys(rankingQuerySchema.shape)),
+    zValidator('query', rankingQuerySchema),
+    async (c) => {
+      const db = drizzle(c.env.DB);
+      const query = c.req.valid('query');
 
-    const where = and(
-      eq(runs.mapName, query.map),
-      query.includeTest === '1' ? undefined : eq(runs.isTest, false),
-    );
+      const where = and(
+        eq(runs.mapName, query.map),
+        query.includeTest === '1' ? undefined : eq(runs.isTest, false),
+      );
 
-    // 順位は、そのマップでのタイム順(同じタイムは先に記録したほうが上)。
-    // 並べ替えやページ送りをしても変わらないよう、先に全体へ順位を振ってから並べ替える。
-    const ranked = db
-      .select({
-        rank: sql<number>`row_number() over (order by ${runs.clearSeconds} asc, ${runs.id} asc)`.as(
-          'rank',
-        ),
-        id: runs.id,
-        mapName: runs.mapName,
-        clearSeconds: runs.clearSeconds,
-        jumpCount: runs.jumpCount,
-        test: runs.isTest,
-        deviceName: devices.displayName,
-        createdAt: runs.createdAt,
-      })
-      .from(runs)
-      .innerJoin(devices, eq(runs.deviceId, devices.id))
-      .where(where)
-      .as('ranked');
+      // 順位は、そのマップでのタイム順(同じタイムは先に記録したほうが上)。
+      // 並べ替えやページ送りをしても変わらないよう、先に全体へ順位を振ってから並べ替える。
+      const ranked = db
+        .select({
+          rank: sql<number>`row_number() over (order by ${runs.clearSeconds} asc, ${runs.id} asc)`.as(
+            'rank',
+          ),
+          id: runs.id,
+          mapName: runs.mapName,
+          clearSeconds: runs.clearSeconds,
+          jumpCount: runs.jumpCount,
+          test: runs.isTest,
+          deviceName: devices.displayName,
+          createdAt: runs.createdAt,
+        })
+        .from(runs)
+        .innerJoin(devices, eq(runs.deviceId, devices.id))
+        .where(where)
+        .as('ranked');
 
-    // 記録した時刻は秒までしか持たないので、記録順は id で並べる(id は記録した順に増える)
-    const orderBy =
-      query.sort === 'createdAt'
-        ? [desc(ranked.id)]
-        : query.sort === 'jumpCount'
-          ? [asc(ranked.jumpCount), asc(ranked.rank)]
-          : [asc(ranked.rank)];
+      // 記録した時刻は秒までしか持たないので、記録順は id で並べる(id は記録した順に増える)
+      const orderBy =
+        query.sort === 'createdAt'
+          ? [desc(ranked.id)]
+          : query.sort === 'jumpCount'
+            ? [asc(ranked.jumpCount), asc(ranked.rank)]
+            : [asc(ranked.rank)];
 
-    const [rows, [totalRow]] = await Promise.all([
-      db
-        .select()
-        .from(ranked)
-        .orderBy(...orderBy)
-        .limit(query.limit)
-        .offset(query.offset),
-      db.select({ total: count() }).from(runs).where(where),
-    ]);
+      const [rows, [totalRow]] = await Promise.all([
+        db
+          .select()
+          .from(ranked)
+          .orderBy(...orderBy)
+          .limit(query.limit)
+          .offset(query.offset),
+        db.select({ total: count() }).from(runs).where(where),
+      ]);
 
-    return c.json({ total: totalRow?.total ?? 0, runs: rows });
-  });
+      return c.json({ total: totalRow?.total ?? 0, runs: rows });
+    },
+  );
