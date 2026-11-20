@@ -1,3 +1,6 @@
+import { Popover } from '@base-ui/react/popover';
+import { Info } from 'lucide-react';
+import { Fragment } from 'react';
 import { Badge } from '#/components/ui/badge';
 import { Skeleton } from '#/components/ui/skeleton';
 import {
@@ -9,7 +12,7 @@ import {
   TableRow,
 } from '#/components/ui/table';
 import { formatPlayTime, formatRecordedAt, formatScore } from '#/lib/format';
-import { resultLabel } from './labels';
+import { playerLabel, resultLabel } from './labels';
 import { DifficultyLabel, PlayerLabel, rankColor, rankTint } from './run-labels';
 import type { WaterShootingRun } from './ranking';
 
@@ -92,37 +95,72 @@ function WideTable({ runs }: { runs: WaterShootingRun[] }) {
   );
 }
 
-/** スマホ向け。列を並べると横にはみ出すので、1 件を 2 行にまとめる。 */
+/** スマホ向けの行をタップしたときに出す、行に載せなかった項目。 */
+function RunDetails({ run }: { run: WaterShootingRun }) {
+  const items: [label: string, value: string][] = [
+    ['キャラ', playerLabel(run.player)],
+    ['ステージ', stageText(run)],
+    ['タイム', formatPlayTime(run.playSeconds)],
+    ['PC', run.deviceName],
+    ['記録した時刻', formatRecordedAt(run.createdAt)],
+  ];
+  return (
+    <dl className="grid grid-cols-[auto_auto] gap-x-4 gap-y-1 text-sm">
+      {items.map(([label, value]) => (
+        <Fragment key={label}>
+          <dt className="text-muted-foreground">{label}</dt>
+          <dd className="text-right tabular-nums">{value}</dd>
+        </Fragment>
+      ))}
+    </dl>
+  );
+}
+
+/**
+ * スマホ向け。列を並べると横にはみ出すので、行には順位・キャラの絵・スコア・難易度・結果だけを載せる。
+ * 残りの項目は、行をタップ(マウスなら重ねる)と出る小窓に入れる。
+ */
 function NarrowList({ runs }: { runs: WaterShootingRun[] }) {
   return (
     <ol className="divide-y divide-border/50">
       {runs.map((run) => (
         // 色を枠の端まで敷くため、枠の内側の余白の分だけ左右にはみ出させて、同じだけ余白を持たせる
-        <li
-          key={run.id}
-          className="-mx-3 flex items-center gap-3 px-3 py-3 sm:-mx-4 sm:px-4"
-          style={{ backgroundColor: rankTint(run.rank) }}
-        >
-          <span
-            className="w-9 shrink-0 text-right font-display text-2xl tabular-nums"
-            style={{ color: rankColor(run.rank) }}
-          >
-            {run.rank}
-          </span>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center justify-between gap-2">
-              <span className="font-display text-2xl tabular-nums">{formatScore(run.score)}</span>
+        <li key={run.id} className="-mx-3 sm:-mx-4" style={{ backgroundColor: rankTint(run.rank) }}>
+          <Popover.Root>
+            <Popover.Trigger
+              openOnHover
+              delay={150}
+              className="flex w-full items-center gap-2.5 px-3 py-2 text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50 data-popup-open:bg-foreground/10 sm:px-4"
+            >
+              <span
+                className="w-7 shrink-0 text-center font-display text-2xl tabular-nums"
+                style={{ color: rankColor(run.rank) }}
+              >
+                {run.rank}
+              </span>
+              <PlayerLabel value={run.player} showName={false} className="shrink-0 text-lg" />
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span className="font-display text-2xl leading-tight tabular-nums">
+                  {formatScore(run.score)}
+                </span>
+                <span className="text-xs leading-tight">
+                  <DifficultyLabel value={run.difficulty} />
+                </span>
+              </span>
               <ResultBadge run={run} />
-            </div>
-            <div className="mt-0.5 flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground">
-              <DifficultyLabel value={run.difficulty} />
-              <PlayerLabel value={run.player} />
-              <span className="tabular-nums">ステージ {stageText(run)}</span>
-              <span className="tabular-nums">{formatPlayTime(run.playSeconds)}</span>
-              <span>{run.deviceName}</span>
-              <span className="tabular-nums">{formatRecordedAt(run.createdAt)}</span>
-            </div>
-          </div>
+              <Info aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
+            </Popover.Trigger>
+            <Popover.Portal>
+              <Popover.Positioner side="bottom" align="end" sideOffset={4} className="z-50">
+                <Popover.Popup
+                  aria-label={`${run.rank} 位の記録の詳細`}
+                  className="border-2 bg-popover px-3 py-2 text-popover-foreground shadow-md outline-none"
+                >
+                  <RunDetails run={run} />
+                </Popover.Popup>
+              </Popover.Positioner>
+            </Popover.Portal>
+          </Popover.Root>
         </li>
       ))}
     </ol>

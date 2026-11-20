@@ -81,7 +81,7 @@ function Home() {
         </Link>
 
         {/* 会場のモニター向けの表示。来場者が押すものではないので、小さく置く */}
-        <div className="flex items-end justify-between gap-4">
+        <div className="flex items-center justify-between gap-4">
           {/* 部員向けの zip の配布。合言葉が要るので、目立たせずに端へ置く */}
           <Link
             to="/games"
