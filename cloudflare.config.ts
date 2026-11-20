@@ -29,8 +29,19 @@ export default defineConfig(({ mode }) => ({
       // zip の一覧とダウンロードを開く合言葉。無いあいだは配布が止まる
       GAMES_PASSPHRASE: bindings.secret(),
       GAMES_LOGIN_LIMIT: bindings.rateLimit({
-        namespace: '2026',
+        namespace: '2601',
         simple: { limit: 8, period: 60 },
+      }),
+      // ランキングを D1 から読む回数(src/worker/ranking-limit.ts)。キャッシュから返せた分は数えない。
+      // サイネージ 1 台は、1 分に 6〜12 回読む。
+      // namespace は、アカウントの中で重ならない整数。年の下 2 桁(26)に通し番号を付ける
+      RANKING_CLIENT_LIMIT: bindings.rateLimit({
+        namespace: '2602',
+        simple: { limit: 30, period: 60 },
+      }),
+      RANKING_TOTAL_LIMIT: bindings.rateLimit({
+        namespace: '2603',
+        simple: { limit: 120, period: 60 },
       }),
       ACCESS_TEAM_DOMAIN: bindings.text(ACCESS_TEAM_DOMAIN),
       ACCESS_AUD: bindings.text(ACCESS_AUD),

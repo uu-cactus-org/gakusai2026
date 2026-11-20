@@ -7,6 +7,7 @@ import { requireGame } from './auth';
 import { edgeCache } from './cache';
 import { devices, waterShootingRuns as runs } from './db/schema';
 import { registerDevice } from './devices';
+import { limitRankingReads } from './ranking-limit';
 
 // 値の範囲は、ゲームの仕様変更で当日の記録が落ちないよう広めに取る。明らかに壊れた値だけ弾く。
 const runSchema = z.object({
@@ -105,6 +106,7 @@ export const waterShootingApp = new Hono<{ Bindings: Env }>()
     '/ranking',
     edgeCache(RANKING_CACHE_SECONDS, Object.keys(rankingQuerySchema.shape)),
     zValidator('query', rankingQuerySchema),
+    limitRankingReads,
     async (c) => {
       const db = drizzle(c.env.DB);
       const query = c.req.valid('query');

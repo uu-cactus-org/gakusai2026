@@ -43,10 +43,22 @@ describe('edgeCache', () => {
   test('2 回目は、処理を呼ばずにキャッシュから返す', async () => {
     const { get, calls } = setup();
     const first = await get('/ranking?limit=10');
-    expect(first.headers.get('Cache-Control')).toBe('public, s-maxage=5');
     expect(await first.json()).toEqual({ calls: 1 });
     expect(await (await get('/ranking?limit=10')).json()).toEqual({ calls: 1 });
     expect(calls()).toBe(1);
+  });
+
+  test('ブラウザには残させず、キャッシュに置くものにだけ秒数を付ける', async () => {
+    const { cache, get } = setup();
+    const miss = await get('/ranking?limit=10');
+    expect(miss.headers.get('Cache-Control')).toBe('no-store');
+    const [stored] = [...cache.stored.values()];
+    expect(stored?.headers.get('Cache-Control')).toBe('public, s-maxage=5');
+
+    // Cloudflare は、キャッシュから返す応答に max-age を足してくる
+    stored?.headers.set('Cache-Control', 'public, max-age=14400, s-maxage=5');
+    const hit = await get('/ranking?limit=10');
+    expect(hit.headers.get('Cache-Control')).toBe('no-store');
   });
 
   test('挙げていないクエリを足しても、同じキャッシュに当たる', async () => {

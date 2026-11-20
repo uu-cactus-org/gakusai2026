@@ -8,7 +8,7 @@ import { createMiddleware } from 'hono/factory';
  *
  * キャッシュのキーには、`params` に挙げたクエリだけを使う。関係のないクエリを足して
  * キャッシュを避けることはできない(`offset` のように値を変えられるものは、値ごとに別になる)。
- * ブラウザには残さない(`s-maxage` だけを付ける)。
+ * ブラウザには残さない(ブラウザへ返す応答は `no-store` にする)。
  */
 export const edgeCache = (seconds: number, params: readonly string[]) =>
   createMiddleware(async (c, next) => {
@@ -25,10 +25,22 @@ export const edgeCache = (seconds: number, params: readonly string[]) =>
     const key = new Request(keyUrl, { method: 'GET' });
 
     const hit = await cache.match(key);
-    if (hit) return new Response(hit.body, hit);
+    if (hit) {
+      // Cloudflare は、キャッシュから返す応答に、ゾーンの「ブラウザのキャッシュ TTL」(既定で 4 時間)の
+      // max-age を足す。そのまま返すと、ブラウザが何時間も同じ応答を使い回して、画面が更新されなくなる
+      const res = new Response(hit.body, hit);
+      res.headers.set('Cache-Control', BROWSER_CACHE_CONTROL);
+      return res;
+    }
 
     await next();
     if (c.res.status !== 200) return;
-    c.res.headers.set('Cache-Control', `public, s-maxage=${seconds}`);
-    c.executionCtx.waitUntil(cache.put(key, c.res.clone()));
+    // キャッシュに置くものにだけ、置く秒数を付ける
+    const stored = new Response(c.res.clone().body, c.res);
+    stored.headers.set('Cache-Control', `public, s-maxage=${seconds}`);
+    c.executionCtx.waitUntil(cache.put(key, stored));
+    c.res.headers.set('Cache-Control', BROWSER_CACHE_CONTROL);
   });
+
+// ブラウザには残させない
+const BROWSER_CACHE_CONTROL = 'no-store';
