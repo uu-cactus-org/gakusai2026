@@ -42,7 +42,7 @@ function Home() {
             <GameLink
               to="/water-shooting"
               shadow="shadow-[6px_6px_0_#6cc3ff]"
-              icon={<img src={player} alt="" className="pixelated size-[60px]" />}
+              icon={<img src={player} alt="" className="pixelated size-15" />}
               title={
                 <span className="font-display text-3xl leading-none text-primary">
                   WaterShooting
