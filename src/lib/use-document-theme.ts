@@ -16,3 +16,23 @@ export function useDocumentTheme(themeClass: string | undefined) {
     return () => document.documentElement.classList.remove(...classes);
   }, [themeClass]);
 }
+
+/**
+ * 共通の見た目(白い地)の画面を、端末の設定に合わせて暗い配色にする。
+ * 端末が暗い配色のあいだだけ、<html> に dark を付ける。開いている途中で設定が変わっても追う。
+ *
+ * ゲームごとの見た目(theme-xxx)は配色を自分で決めているので、これは使わない。
+ */
+export function useSystemColorScheme() {
+  useLayoutEffect(() => {
+    const query = window.matchMedia('(prefers-color-scheme: dark)');
+    const root = document.documentElement;
+    const apply = () => root.classList.toggle('dark', query.matches);
+    apply();
+    query.addEventListener('change', apply);
+    return () => {
+      query.removeEventListener('change', apply);
+      root.classList.remove('dark');
+    };
+  }, []);
+}

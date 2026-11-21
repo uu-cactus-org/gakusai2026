@@ -15,6 +15,7 @@ import {
 import { downloadUrl, gamesQueryOptions, login } from '#/features/games/api';
 import type { GameFile } from '#/features/games/api';
 import { formatBytes, formatRecordedAt } from '#/lib/format';
+import { useSystemColorScheme } from '#/lib/use-document-theme';
 
 // 部員向けの、ゲームの zip の配布(docs/games.md)。トップの端に、小さいリンクがある。
 export const Route = createFileRoute('/games')({ component: Games });
@@ -129,6 +130,7 @@ function FileTable({ files }: { files: GameFile[] }) {
 }
 
 function Games() {
+  useSystemColorScheme();
   const { data, isPending, error, refetch } = useQuery(gamesQueryOptions);
 
   return (
