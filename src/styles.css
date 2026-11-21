@@ -76,6 +76,52 @@
 }
 
 /*
+ * スクロールバーの幅を、出ていないときも空けておく。ランキングと統計のように、同じ画面で
+ * 高さが変わってスクロールバーが出たり消えたりしても、中身が横にずれない。
+ * サイネージのような全画面の表示には付けない(端に空きが出るので)。
+ */
+.stable-scrollbar {
+  scrollbar-gutter: stable;
+}
+
+/*
+ * ゲームごとの見た目のスクロールバー。ドット絵に合わせて、角のない四角いつまみにする。
+ * 色は見た目の配色(--primary など)から取るので、ゲームごとに自動で変わる。
+ * ページ全体のほか、選択肢のポップアップなど、中でスクロールする部品にも当てる。
+ */
+:is(.theme-water-shooting, .theme-uu-jump)::-webkit-scrollbar,
+:is(.theme-water-shooting, .theme-uu-jump) ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+:is(.theme-water-shooting, .theme-uu-jump)::-webkit-scrollbar-track,
+:is(.theme-water-shooting, .theme-uu-jump) ::-webkit-scrollbar-track,
+:is(.theme-water-shooting, .theme-uu-jump)::-webkit-scrollbar-corner,
+:is(.theme-water-shooting, .theme-uu-jump) ::-webkit-scrollbar-corner {
+  background: var(--muted);
+}
+
+:is(.theme-water-shooting, .theme-uu-jump)::-webkit-scrollbar-thumb,
+:is(.theme-water-shooting, .theme-uu-jump) ::-webkit-scrollbar-thumb {
+  border: 2px solid var(--foreground);
+  background: var(--primary);
+}
+
+:is(.theme-water-shooting, .theme-uu-jump)::-webkit-scrollbar-thumb:hover,
+:is(.theme-water-shooting, .theme-uu-jump) ::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklch, var(--primary), var(--foreground) 25%);
+}
+
+/* ::-webkit-scrollbar が無いブラウザ(Firefox)は、形は変えられないので色だけ合わせる */
+@supports not selector(::-webkit-scrollbar) {
+  :is(.theme-water-shooting, .theme-uu-jump),
+  :is(.theme-water-shooting, .theme-uu-jump) * {
+    scrollbar-color: var(--primary) var(--muted);
+  }
+}
+
+/*
  * WaterShooting の見た目。useDocumentTheme が、WaterShooting の画面を開いているあいだだけ
  * <html> に付ける。配色は、ゲームのタイトル画面(Unity 側の RunSelectionMenu)に合わせている。
  * ゲームが増えたら、同じ形で .theme-<ゲーム名> を足す。

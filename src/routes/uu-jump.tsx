@@ -81,6 +81,8 @@ function MapToggle({
 
 function UuJumpRanking() {
   useDocumentTheme(UU_JUMP_THEME);
+  // ランキングと統計を切り替えても、スクロールバーの有無で中身が横にずれないようにする
+  useDocumentTheme('stable-scrollbar');
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
 
