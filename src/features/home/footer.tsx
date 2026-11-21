@@ -20,6 +20,14 @@ export function FestivalFooter() {
         >
           uucactus.com
         </a>
+        <a
+          href="https://github.com/uu-cactus-org/gakusai2026"
+          target="_blank"
+          rel="noreferrer"
+          className="underline underline-offset-4 hover:text-foreground"
+        >
+          GitHub
+        </a>
       </nav>
       <small className="text-sm">© 2026 情報研究会 CACTUS</small>
     </footer>
