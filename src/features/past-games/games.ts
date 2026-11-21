@@ -1,4 +1,5 @@
 import burstlike from '#/assets/past-games/burstlike.png';
+import cactakun from '#/assets/past-games/cactakun.png';
 import spacetraveler from '#/assets/past-games/spacetraveler.png';
 import teppouUo from '#/assets/past-games/teppou-uo.png';
 
@@ -36,5 +37,13 @@ export const PAST_GAMES: PastGame[] = [
     description: '水鉄砲で虫を撃ち落として食べる、テッポウウオのスコアアタック！',
     url: 'https://unityroom.com/games/teppou-uo',
     icon: teppouUo,
+  },
+  {
+    title: 'ミニゲーム集',
+    description: 'ブラウザで遊べるミニゲーム等',
+    url: 'https://kareshino.github.io/HTML-game-browser/',
+    // 専用の絵がないので、カクタくんの静止画で代用している
+    icon: cactakun,
+    pixelated: true,
   },
 ];
