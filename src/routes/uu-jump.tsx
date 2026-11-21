@@ -1,10 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute, stripSearchParams } from '@tanstack/react-router';
-import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Trophy } from 'lucide-react';
 import { z } from 'zod';
 import { FilterSelect } from '#/components/filter-select';
 import { LastUpdated } from '#/components/last-updated';
 import { Button } from '#/components/ui/button';
+import { STATS_SEARCH_DEFAULTS, statsSearchShape } from '#/features/stats/search';
+import { StatsPanel, StatsToggle } from '#/features/stats/stats-panel';
 import { UuJumpBackdrop } from '#/features/uu-jump/backdrop';
 import { Cactakun } from '#/features/uu-jump/cactakun';
 import { JumpingCactakuns } from '#/features/uu-jump/jumping-cactakuns';
@@ -22,12 +24,15 @@ const searchSchema = z.object({
   // 見るマップ。省いたときは、一覧の先頭のマップ
   map: z.string().min(1).max(64).optional().catch(undefined),
   page: z.coerce.number().int().min(1).default(1).catch(1),
+  ...statsSearchShape,
 });
 
 export const Route = createFileRoute('/uu-jump')({
   validateSearch: searchSchema,
   // 既定の値は URL に出さない
-  search: { middlewares: [stripSearchParams({ sort: 'clearSeconds', page: 1 })] },
+  search: {
+    middlewares: [stripSearchParams({ sort: 'clearSeconds', page: 1, ...STATS_SEARCH_DEFAULTS })],
+  },
   component: UuJumpRanking,
 });
 
@@ -79,16 +84,20 @@ function UuJumpRanking() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
 
-  const maps = useQuery(mapsQueryOptions);
+  // 統計を開いているあいだは、ランキングを取りに行かない
+  const showStats = search.view === 'stats';
+
+  const maps = useQuery({ ...mapsQueryOptions, enabled: !showStats });
   const selectedMap = search.map ?? maps.data?.[0]?.name;
-  const { data, dataUpdatedAt, isPending, isError, isPlaceholderData, refetch } = useQuery(
-    rankingQueryOptions({
+  const { data, dataUpdatedAt, isPending, isError, isPlaceholderData, refetch } = useQuery({
+    ...rankingQueryOptions({
       map: selectedMap,
       sort: search.sort,
       limit: PAGE_SIZE,
       offset: (search.page - 1) * PAGE_SIZE,
     }),
-  );
+    enabled: !showStats && selectedMap !== undefined,
+  });
 
   // URL で指定されたマップに記録が無くても、選択欄には出す
   const mapNames = (maps.data ?? []).map((map) => map.name);
@@ -103,130 +112,153 @@ function UuJumpRanking() {
         <JumpingCactakuns />
       </UuJumpBackdrop>
       <header className="flex flex-col gap-3">
-        {/* 左は一覧へ、右はもう一方のゲームのランキングへ */}
-        <nav className="flex items-center justify-between gap-2">
-          <Button variant="outline" size="sm" render={<Link to="/" />} nativeButton={false}>
-            <ArrowLeft aria-hidden="true" />
-            一覧に戻る
-          </Button>
+        {/* 左は一覧へ、中央は統計の切り替え、右はもう一方のゲームのランキングへ */}
+        <nav className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
           <Button
             variant="outline"
             size="sm"
+            className="justify-self-start"
+            render={<Link to="/" />}
+            nativeButton={false}
+          >
+            <ArrowLeft aria-hidden="true" />
+            トップ
+          </Button>
+          <StatsToggle from="/uu-jump" open={showStats} />
+          <Button
+            variant="outline"
+            size="sm"
+            className="justify-self-end"
             render={<Link to="/water-shooting" />}
             nativeButton={false}
           >
-            WaterShootingのランキング
-            <ArrowRight aria-hidden="true" />
+            <Trophy aria-hidden="true" className="mr-0.5" />
+            WaterShooting
           </Button>
         </nav>
         <div className="flex items-end gap-3">
           <Cactakun />
           <h1 className="uu-jump-title text-5xl leading-none sm:text-6xl">
-            UU-JUMP <span className="block text-2xl sm:inline sm:text-3xl">ランキング</span>
+            UU-JUMP{' '}
+            <span className="block text-2xl sm:inline sm:text-3xl">
+              {showStats ? '統計' : 'ランキング'}
+            </span>
           </h1>
         </div>
       </header>
 
-      <section className="flex flex-col gap-3 border-4 border-foreground bg-(--panel)/80 px-3 py-4 sm:px-5">
-        {/* マップの切り替えは左、並べ替えは右。ランキングはマップごと */}
-        <div className="grid grid-cols-2 items-end gap-3 sm:flex sm:flex-wrap">
-          {selectedMap !== undefined && (
-            <MapToggle
-              maps={mapNames}
-              value={selectedMap}
-              onChange={(map) =>
-                navigate({ search: (prev) => ({ ...prev, map, page: 1 }), replace: true })
-              }
-            />
-          )}
-          <div className="col-span-2 flex items-end justify-end gap-3 sm:ml-auto">
-            {data && selectedMap && (
-              <p className="flex h-8 items-center text-sm text-muted-foreground">
-                全 {data.total} 件
-              </p>
+      {showStats ? (
+        <StatsPanel
+          game="uu-jump"
+          title="UU-JUMP"
+          search={search}
+          onChange={(patch) =>
+            navigate({ search: (prev) => ({ ...prev, ...patch }), replace: true })
+          }
+          className="border-4 border-foreground bg-(--panel)/80 px-3 py-4 sm:px-5"
+        />
+      ) : (
+        <section className="flex flex-col gap-3 border-4 border-foreground bg-(--panel)/80 px-3 py-4 sm:px-5">
+          {/* マップの切り替えは左、並べ替えは右。ランキングはマップごと */}
+          <div className="grid grid-cols-2 items-end gap-3 sm:flex sm:flex-wrap">
+            {selectedMap !== undefined && (
+              <MapToggle
+                maps={mapNames}
+                value={selectedMap}
+                onChange={(map) =>
+                  navigate({ search: (prev) => ({ ...prev, map, page: 1 }), replace: true })
+                }
+              />
             )}
-            <FilterSelect
-              label="並べ替え"
-              value={search.sort}
-              options={SORT_OPTIONS}
-              onChange={(sort) =>
-                navigate({ search: (prev) => ({ ...prev, sort, page: 1 }), replace: true })
-              }
-            />
+            <div className="col-span-2 flex items-end justify-end gap-3 sm:ml-auto">
+              {data && selectedMap && (
+                <p className="flex h-8 items-center text-sm text-muted-foreground">
+                  全 {data.total} 件
+                </p>
+              )}
+              <FilterSelect
+                label="並べ替え"
+                value={search.sort}
+                options={SORT_OPTIONS}
+                onChange={(sort) =>
+                  navigate({ search: (prev) => ({ ...prev, sort, page: 1 }), replace: true })
+                }
+              />
+            </div>
           </div>
-        </div>
 
-        {maps.isPending ? (
-          <p className="py-8 text-center text-muted-foreground">読み込んでいます…</p>
-        ) : maps.isError && !maps.data ? (
-          <div className="flex flex-col items-center gap-3 py-8">
-            <p>ランキングを読み込めませんでした。</p>
-            <Button variant="outline" onClick={() => maps.refetch()}>
-              もう一度読み込む
-            </Button>
-          </div>
-        ) : selectedMap === undefined ? (
-          <p className="py-8 text-center text-muted-foreground">まだ記録がありません</p>
-        ) : isPending ? (
-          <p className="py-8 text-center text-muted-foreground">読み込んでいます…</p>
-        ) : !data ? (
-          <div className="flex flex-col items-center gap-3 py-8">
-            <p>ランキングを読み込めませんでした。</p>
-            <Button variant="outline" onClick={() => refetch()}>
-              もう一度読み込む
-            </Button>
-          </div>
-        ) : (
-          <>
-            {isError && (
-              <p className="text-sm text-destructive">
-                最新の記録を取得できませんでした。前回の内容を表示しています。
-              </p>
-            )}
-            {data.total === 0 ? (
-              <p className="py-8 text-center text-muted-foreground">条件に合う記録はありません</p>
-            ) : data.runs.length === 0 ? (
-              <div className="flex flex-col items-center gap-3 py-8">
-                <p className="text-muted-foreground">このページには記録がありません。</p>
-                <Button variant="outline" onClick={() => setPage(1)}>
-                  最初のページへ
+          {maps.isPending ? (
+            <p className="py-8 text-center text-muted-foreground">読み込んでいます…</p>
+          ) : maps.isError && !maps.data ? (
+            <div className="flex flex-col items-center gap-3 py-8">
+              <p>ランキングを読み込めませんでした。</p>
+              <Button variant="outline" onClick={() => maps.refetch()}>
+                もう一度読み込む
+              </Button>
+            </div>
+          ) : selectedMap === undefined ? (
+            <p className="py-8 text-center text-muted-foreground">まだ記録がありません</p>
+          ) : isPending ? (
+            <p className="py-8 text-center text-muted-foreground">読み込んでいます…</p>
+          ) : !data ? (
+            <div className="flex flex-col items-center gap-3 py-8">
+              <p>ランキングを読み込めませんでした。</p>
+              <Button variant="outline" onClick={() => refetch()}>
+                もう一度読み込む
+              </Button>
+            </div>
+          ) : (
+            <>
+              {isError && (
+                <p className="text-sm text-destructive">
+                  最新の記録を取得できませんでした。前回の内容を表示しています。
+                </p>
+              )}
+              {data.total === 0 ? (
+                <p className="py-8 text-center text-muted-foreground">条件に合う記録はありません</p>
+              ) : data.runs.length === 0 ? (
+                <div className="flex flex-col items-center gap-3 py-8">
+                  <p className="text-muted-foreground">このページには記録がありません。</p>
+                  <Button variant="outline" onClick={() => setPage(1)}>
+                    最初のページへ
+                  </Button>
+                </div>
+              ) : (
+                <div className={isPlaceholderData ? 'opacity-60 transition-opacity' : undefined}>
+                  <UuJumpRankingTable runs={data.runs} />
+                </div>
+              )}
+
+              <nav className="flex items-center justify-between gap-3" aria-label="ページ送り">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  aria-label="前のページ"
+                  title="前のページ"
+                  disabled={search.page <= 1}
+                  onClick={() => setPage(search.page - 1)}
+                >
+                  <ChevronLeft aria-hidden="true" />
                 </Button>
-              </div>
-            ) : (
-              <div className={isPlaceholderData ? 'opacity-60 transition-opacity' : undefined}>
-                <UuJumpRankingTable runs={data.runs} />
-              </div>
-            )}
-
-            <nav className="flex items-center justify-between gap-3" aria-label="ページ送り">
-              <Button
-                variant="outline"
-                size="icon"
-                aria-label="前のページ"
-                title="前のページ"
-                disabled={search.page <= 1}
-                onClick={() => setPage(search.page - 1)}
-              >
-                <ChevronLeft aria-hidden="true" />
-              </Button>
-              <span className="text-sm text-muted-foreground tabular-nums">
-                {search.page} / {pageCount} ページ
-              </span>
-              <Button
-                variant="outline"
-                size="icon"
-                aria-label="次のページ"
-                title="次のページ"
-                disabled={search.page >= pageCount}
-                onClick={() => setPage(search.page + 1)}
-              >
-                <ChevronRight aria-hidden="true" />
-              </Button>
-            </nav>
-          </>
-        )}
-        <LastUpdated updatedAt={dataUpdatedAt} />
-      </section>
+                <span className="text-sm text-muted-foreground tabular-nums">
+                  {search.page} / {pageCount} ページ
+                </span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  aria-label="次のページ"
+                  title="次のページ"
+                  disabled={search.page >= pageCount}
+                  onClick={() => setPage(search.page + 1)}
+                >
+                  <ChevronRight aria-hidden="true" />
+                </Button>
+              </nav>
+            </>
+          )}
+          <LastUpdated updatedAt={dataUpdatedAt} />
+        </section>
+      )}
     </main>
   );
 }

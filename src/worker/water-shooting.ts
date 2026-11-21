@@ -8,6 +8,7 @@ import { edgeCache } from './cache';
 import { devices, waterShootingRuns as runs } from './db/schema';
 import { registerDevice } from './devices';
 import { limitRankingReads } from './ranking-limit';
+import { PLAY_BUCKET_SECONDS, STATS_CACHE_SECONDS, playBuckets } from './stats';
 
 // 値の範囲は、ゲームの仕様変更で当日の記録が落ちないよう広めに取る。明らかに壊れた値だけ弾く。
 const runSchema = z.object({
@@ -100,6 +101,11 @@ export const waterShootingApp = new Hono<{ Bindings: Env }>()
 
     const [rank, total] = await Promise.all([rankOf(db, run), totalRanked(db)]);
     return c.json({ id: run.id, rank, total, test: run.isTest }, inserted.length > 0 ? 201 : 200);
+  })
+  // 10 分ごとのプレイ数。統計の画面のグラフに使う。
+  .get('/stats', edgeCache(STATS_CACHE_SECONDS, []), async (c) => {
+    const buckets = await playBuckets(drizzle(c.env.DB), runs);
+    return c.json({ bucketSeconds: PLAY_BUCKET_SECONDS, buckets });
   })
   // ランキング。既定はスコアが高い順。並べ替えと絞り込みができる。
   .get(

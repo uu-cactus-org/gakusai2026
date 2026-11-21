@@ -8,6 +8,7 @@ import { edgeCache } from './cache';
 import { devices, uuJumpRuns as runs } from './db/schema';
 import { registerDevice } from './devices';
 import { limitRankingReads } from './ranking-limit';
+import { PLAY_BUCKET_SECONDS, STATS_CACHE_SECONDS, playBuckets } from './stats';
 
 // 値の範囲は、ゲームの仕様変更で当日の記録が落ちないよう広めに取る。明らかに壊れた値だけ弾く。
 const runSchema = z.object({
@@ -108,6 +109,11 @@ export const uuJumpApp = new Hono<{ Bindings: Env }>()
       .groupBy(runs.mapName)
       .orderBy(asc(runs.mapName));
     return c.json({ maps: rows });
+  })
+  // 10 分ごとのプレイ数。統計の画面のグラフに使う。
+  .get('/stats', edgeCache(STATS_CACHE_SECONDS, []), async (c) => {
+    const buckets = await playBuckets(drizzle(c.env.DB), runs);
+    return c.json({ bucketSeconds: PLAY_BUCKET_SECONDS, buckets });
   })
   // マップごとのランキング。既定はクリアまでが短い順。
   .get(
