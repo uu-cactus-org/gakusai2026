@@ -37,6 +37,11 @@ const stageText = (run: WaterShootingRun) => `${run.reachedStage} / ${run.totalS
 // 表は枠の端まで広げるので、両端の列に、枠の内側の余白を持たせる
 const EDGE = '[&>*:first-child]:pl-6 [&>*:last-child]:pr-6';
 
+// 1〜3 位の行。順位の色の地(--row-tint)を敷き、マウスを重ねたら、ほかの行と同じように少し色を変える。
+// 地を style で直接塗ると、hover の色が効かなくなるので、変数で渡してクラスで塗る
+const TINTED_ROW =
+  'bg-(--row-tint) hover:bg-[color-mix(in_srgb,var(--row-tint),var(--foreground)_10%)]';
+
 /** 幅のある画面向けの表。 */
 function WideTable({ runs }: { runs: WaterShootingRun[] }) {
   return (
@@ -56,40 +61,43 @@ function WideTable({ runs }: { runs: WaterShootingRun[] }) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {runs.map((run) => (
-          <TableRow
-            key={run.id}
-            className={`border-border/50 ${EDGE}`}
-            style={{ backgroundColor: rankTint(run.rank) }}
-          >
-            <TableCell
-              className="text-center font-display text-xl tabular-nums"
-              style={{ color: rankColor(run.rank) }}
+        {runs.map((run) => {
+          const tint = rankTint(run.rank);
+          return (
+            <TableRow
+              key={run.id}
+              className={`border-border/50 ${EDGE} ${tint ? TINTED_ROW : ''}`}
+              style={tint ? ({ '--row-tint': tint } as React.CSSProperties) : undefined}
             >
-              {run.rank}
-            </TableCell>
-            <TableCell className="text-right font-display text-xl tabular-nums">
-              {formatScore(run.score)}
-            </TableCell>
-            <TableCell className="text-center">
-              <DifficultyLabel value={run.difficulty} />
-            </TableCell>
-            <TableCell>
-              <PlayerLabel value={run.player} className="justify-center" />
-            </TableCell>
-            <TableCell className="text-center">
-              <ResultBadge run={run} />
-            </TableCell>
-            <TableCell className="tabular-nums text-center">{stageText(run)}</TableCell>
-            <TableCell className="text-center tabular-nums">
-              {formatPlayTime(run.playSeconds)}
-            </TableCell>
-            <TableCell className="text-center">{run.deviceName}</TableCell>
-            <TableCell className="text-center text-muted-foreground tabular-nums">
-              {formatRecordedAt(run.createdAt)}
-            </TableCell>
-          </TableRow>
-        ))}
+              <TableCell
+                className="text-center font-display text-xl tabular-nums"
+                style={{ color: rankColor(run.rank) }}
+              >
+                {run.rank}
+              </TableCell>
+              <TableCell className="text-right font-display text-xl tabular-nums">
+                {formatScore(run.score)}
+              </TableCell>
+              <TableCell className="text-center">
+                <DifficultyLabel value={run.difficulty} />
+              </TableCell>
+              <TableCell>
+                <PlayerLabel value={run.player} className="justify-center" />
+              </TableCell>
+              <TableCell className="text-center">
+                <ResultBadge run={run} />
+              </TableCell>
+              <TableCell className="tabular-nums text-center">{stageText(run)}</TableCell>
+              <TableCell className="text-center tabular-nums">
+                {formatPlayTime(run.playSeconds)}
+              </TableCell>
+              <TableCell className="text-center">{run.deviceName}</TableCell>
+              <TableCell className="text-center text-muted-foreground tabular-nums">
+                {formatRecordedAt(run.createdAt)}
+              </TableCell>
+            </TableRow>
+          );
+        })}
       </TableBody>
     </Table>
   );
