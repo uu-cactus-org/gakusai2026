@@ -57,6 +57,42 @@ function FileList({ files }: { files: GameFile[] }) {
   if (files.length === 0) {
     return <p className="py-6 text-muted-foreground">まだファイルがありません。</p>;
   }
+  const totalSize = files.reduce((sum, file) => sum + file.size, 0);
+  return (
+    <>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <Button disabled={files.length < 2} onClick={() => downloadAll(files)}>
+          <Download aria-hidden="true" />
+          すべてダウンロード
+        </Button>
+        <span className="text-sm text-muted-foreground tabular-nums">
+          {files.length} 件、合計 {formatBytes(totalSize)}
+        </span>
+      </div>
+      <FileTable files={files} />
+    </>
+  );
+}
+
+// 続けて始めるダウンロードの間隔。同時に始めると、ブラウザが 2 つ目から先を捨てることがある
+const DOWNLOAD_INTERVAL_MS = 600;
+
+/**
+ * 一覧のファイルを、上から順にすべてダウンロードする。1 つにはまとめず、ファイルごとに保存される。
+ * ブラウザが「複数のファイルのダウンロード」の許可を尋ねたら、許可すると続きが始まる。
+ */
+function downloadAll(files: GameFile[]) {
+  files.forEach((file, index) => {
+    window.setTimeout(() => {
+      const link = document.createElement('a');
+      link.href = downloadUrl(file.name);
+      link.download = file.name;
+      link.click();
+    }, index * DOWNLOAD_INTERVAL_MS);
+  });
+}
+
+function FileTable({ files }: { files: GameFile[] }) {
   return (
     <Table>
       <TableHeader>
