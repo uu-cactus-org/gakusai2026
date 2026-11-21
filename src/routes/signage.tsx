@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { Button } from '#/components/ui/button';
 import { SIGNAGE_BOARDS } from '#/features/signage/boards';
 import { useDocumentTheme } from '#/lib/use-document-theme';
+import { usePageTitle } from '#/lib/use-page-title';
 
 // 会場のモニターごとに URL で変えられる設定。読めない値は既定に戻す。
 const searchSchema = z.object({
@@ -89,6 +90,7 @@ function useScreenWakeLock() {
 const FADE_MS = 300;
 
 function Signage() {
+  usePageTitle('サイネージ');
   const { interval, rows, pages, wide } = Route.useSearch();
   const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
   useScreenWakeLock();

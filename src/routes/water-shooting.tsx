@@ -25,6 +25,7 @@ import {
   WaterShootingRankingTable,
   WaterShootingRankingTableSkeleton,
 } from '#/features/water-shooting/ranking-table';
+import { usePageTitle } from '#/lib/use-page-title';
 
 const PAGE_SIZE = 20;
 
@@ -77,6 +78,7 @@ const fromAll = <T extends string>(value: T | typeof ALL) =>
   value === ALL ? undefined : (value as T);
 
 function WaterShootingRanking() {
+  usePageTitle('WaterShooting');
   useDocumentTheme(WATER_SHOOTING_THEME);
   // ランキングと統計を切り替えても、スクロールバーの有無で中身が横にずれないようにする
   useDocumentTheme('stable-scrollbar');

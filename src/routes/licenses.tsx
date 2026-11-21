@@ -6,6 +6,7 @@ import { FestivalBackdrop } from '#/features/home/backdrop';
 import { FestivalFooter } from '#/features/home/footer';
 import { FESTIVAL_THEME } from '#/features/home/theme';
 import { useDocumentTheme } from '#/lib/use-document-theme';
+import { usePageTitle } from '#/lib/use-page-title';
 
 export const Route = createFileRoute('/licenses')({ component: Licenses });
 
@@ -35,6 +36,7 @@ const FONTS = [
 ];
 
 function Licenses() {
+  usePageTitle('ライセンス');
   useDocumentTheme(FESTIVAL_THEME);
   const { data, isPending } = useQuery({
     queryKey: ['licenses'],

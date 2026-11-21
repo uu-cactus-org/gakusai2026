@@ -15,6 +15,7 @@ import type { SortKey } from '#/features/uu-jump/ranking';
 import { UuJumpRankingTable } from '#/features/uu-jump/ranking-table';
 import { UU_JUMP_THEME } from '#/features/uu-jump/theme';
 import { useDocumentTheme } from '#/lib/use-document-theme';
+import { usePageTitle } from '#/lib/use-page-title';
 
 const PAGE_SIZE = 20;
 
@@ -80,6 +81,7 @@ function MapToggle({
 }
 
 function UuJumpRanking() {
+  usePageTitle('UU-JUMP');
   useDocumentTheme(UU_JUMP_THEME);
   // ランキングと統計を切り替えても、スクロールバーの有無で中身が横にずれないようにする
   useDocumentTheme('stable-scrollbar');

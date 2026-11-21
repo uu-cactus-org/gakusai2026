@@ -7,6 +7,7 @@ import { FESTIVAL_THEME } from '#/features/home/theme';
 import { PAST_GAMES } from '#/features/past-games/games';
 import type { PastGame } from '#/features/past-games/games';
 import { useDocumentTheme } from '#/lib/use-document-theme';
+import { usePageTitle } from '#/lib/use-page-title';
 
 // 過去に作ったゲームへのリンク集。並べるゲームは features/past-games/games.ts にある。
 export const Route = createFileRoute('/past-games')({ component: PastGames });
@@ -15,6 +16,7 @@ export const Route = createFileRoute('/past-games')({ component: PastGames });
 const SHADOWS = ['#6cc3ff', '#42b147', '#ff6a91', '#ffe079', '#c79bff'];
 
 function PastGames() {
+  usePageTitle('過去のゲーム');
   useDocumentTheme(FESTIVAL_THEME);
 
   return (

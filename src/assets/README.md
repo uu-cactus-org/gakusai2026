@@ -23,6 +23,8 @@
 | `uu-jump/cactakun_charge.png`     | `Assets/Sprites/cactakun_charge.png`(主人公、4 コマ)                                 |
 | `fonts/DotGothic16-Regular.woff2` | `Assets/Fonts/DotGothic16-Regular.ttf` を WOFF2 にしたもの                           |
 
+`public/favicon.png`(タブの絵)は、`uu-jump/cactakun_charge.png` の 1 コマ目から周りの余白を切り詰め、ぼかさずに 4 倍(112×112)に広げたものです。
+
 ## 書体のライセンス
 
 - PixelMplus: M+ FONT LICENSE

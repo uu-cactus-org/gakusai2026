@@ -10,6 +10,7 @@ import { GamesPanel } from '#/features/admin/games-panel';
 import { UuJumpRunsPanel } from '#/features/admin/uu-jump-runs-panel';
 import { WaterShootingRunsPanel } from '#/features/admin/water-shooting-runs-panel';
 import { useSystemColorScheme } from '#/lib/use-document-theme';
+import { usePageTitle } from '#/lib/use-page-title';
 
 const TABS = ['water-shooting', 'uu-jump', 'devices', 'games'] as const;
 
@@ -33,6 +34,7 @@ export const Route = createFileRoute('/admin')({
 });
 
 function Admin() {
+  usePageTitle('Admin');
   useSystemColorScheme();
   const { tab } = Route.useSearch();
   const navigate = Route.useNavigate();
