@@ -27,6 +27,9 @@ export function UuJumpSignageTitle() {
   );
 }
 
+// 下へ送らないマップ(記録が rows 件以下)を映す秒数
+const UNSCROLLED_PAGE_SECONDS = 4;
+
 /**
  * サイネージ用の UU-JUMP のランキング。マップを名前の順に、1 マップ 1 ページで映す。
  * マップが数個あり、何ページも送ると一巡が長くなるので、どのマップも上位の 1 ページ(既定で 20 位まで)だけにする。
@@ -38,6 +41,7 @@ export function UuJumpSignageBoard({
   interval,
   paused,
   onPageCount,
+  onPageSeconds,
 }: SignageBoardProps) {
   const maps = useQuery(mapsQueryOptions);
   const slots = maps.data ?? null;
@@ -54,6 +58,14 @@ export function UuJumpSignageBoard({
   useEffect(() => {
     if (pageCount !== null) onPageCount(pageCount);
   }, [pageCount, onPageCount]);
+
+  // 行が画面に収まって下へ送らないマップは、見るものが少ないので、短く映して次へ送る。
+  // 中身を読むまでは分からないので、それまでは決めない
+  const pageSeconds =
+    data && data.runs.length <= rows ? Math.min(interval, UNSCROLLED_PAGE_SECONDS) : null;
+  useEffect(() => {
+    onPageSeconds(pageSeconds);
+  }, [pageSeconds, onPageSeconds]);
 
   // 次のマップを先に読んでおく。送った瞬間に中身がそろっていないと、滑って入ってくる表が前のマップのままになる
   const queryClient = useQueryClient();

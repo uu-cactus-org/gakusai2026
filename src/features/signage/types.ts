@@ -14,6 +14,11 @@ export type SignageBoardProps = {
   maxPages: number;
   /** 今あるページ数が分かったら知らせる。サイネージはこの数だけ送ってから次のボードへ進む */
   onPageCount: (pageCount: number) => void;
+  /**
+   * 今のページを映す秒数を、ボードが中身を見て決めるときに知らせる。null なら、決めない(interval のまま)。
+   * 使わないボードは、呼ばなくていい
+   */
+  onPageSeconds: (seconds: number | null) => void;
 };
 
 /** サイネージで順に映す 1 枚。ゲームのランキング 1 つが 1 ボード。 */

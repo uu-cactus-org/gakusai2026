@@ -62,7 +62,7 @@ UU-JUMP は、1 ページに `rows` の 2 倍の件数を持たせ、ページ�
 
 同じゲームの次のページへ送るときは、表の行を横へ滑らせます(View Transitions。無いブラウザでは、滑らせずに替えます)。別のゲームへ移るときは、黒い幕を挟みます。
 
-WaterShooting は、`interval` にかかわらず、1 ページを 4 秒で送ります(`boards.ts` の `interval`)。`interval` が効くのは UU-JUMP です。例: `/signage?interval=15&rows=8&pages=2`
+WaterShooting は、`interval` にかかわらず、1 ページを 4 秒で送ります(`boards.ts` の `interval`)。`interval` が効くのは UU-JUMP です。ただし UU-JUMP も、記録が `rows` 件以下で下へ送らないマップは、4 秒で送ります(`interval` が 4 より短ければ、`interval` のまま)。例: `/signage?interval=15&rows=8&pages=2`
 
 ### iPad から 16:9 のモニターへ出す
 

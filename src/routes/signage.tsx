@@ -103,11 +103,28 @@ function Signage() {
 
   const board = SIGNAGE_BOARDS[slide.board] ?? SIGNAGE_BOARDS[0];
   useDocumentTheme(board.themeClass);
-  // 1 ページを映す秒数。ボードが決めていれば、そちらを使う
-  const pageSeconds = board.interval ?? interval;
   const pageCount = pageCounts[board.id] ?? 1;
   // 記録が消されてページが減っても、無いページを映さない
   const page = Math.min(slide.page, pageCount - 1);
+
+  // ボードが、今のページを映す秒数を中身から決めたときの値。どのページの話かも一緒に持って、送ったあとに前のページの値を使わない
+  const slideKey = `${board.id}:${page}`;
+  const [reportedSeconds, setReportedSeconds] = useState<{
+    key: string;
+    seconds: number | null;
+  } | null>(null);
+  const reportPageSeconds = useCallback(
+    (seconds: number | null) =>
+      setReportedSeconds((prev) =>
+        prev?.key === slideKey && prev.seconds === seconds ? prev : { key: slideKey, seconds },
+      ),
+    [slideKey],
+  );
+  // 1 ページを映す秒数。ボードがページごとに決めた値、ボードの決まった値、URL の interval の順に使う
+  const pageSeconds =
+    (reportedSeconds?.key === slideKey ? reportedSeconds.seconds : null) ??
+    board.interval ??
+    interval;
 
   const reportPageCount = useCallback(
     (count: number) =>
@@ -249,6 +266,7 @@ function Signage() {
           paused={paused}
           maxPages={pages}
           onPageCount={reportPageCount}
+          onPageSeconds={reportPageSeconds}
         />
       </main>
 
