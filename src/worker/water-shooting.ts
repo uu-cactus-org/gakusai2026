@@ -28,8 +28,9 @@ const runSchema = z.object({
 // 並べ替えに使える項目
 const SORT_KEYS = ['score', 'baseScore', 'playSeconds', 'reachedStage', 'createdAt'] as const;
 
-// ランキングの応答をキャッシュに置く秒数
-const RANKING_CACHE_SECONDS = 5;
+// ランキングの応答をキャッシュに置く秒数。
+// サイネージは 30 秒ほどで一巡して同じページへ戻ってくるので、それより長く置かないと、毎回 D1 を読むことになる
+const RANKING_CACHE_SECONDS = 60;
 
 const rankingQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
