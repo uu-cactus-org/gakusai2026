@@ -15,6 +15,8 @@ export const SIGNAGE_BOARDS: readonly [SignageBoard, ...SignageBoard[]] = [
     subtitle: 'スコアランキング',
     Component: WaterShootingSignageBoard,
     widthEm: 37,
+    // 下へ送らず 10 件を映すだけなので、UU-JUMP より短く送る
+    interval: 4,
     themeClass: WATER_SHOOTING_THEME,
     Backdrop: WaterShootingSignageBackdrop,
   },

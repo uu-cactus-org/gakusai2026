@@ -10,7 +10,7 @@ import { usePageTitle } from '#/lib/use-page-title';
 
 // 会場のモニターごとに URL で変えられる設定。読めない値は既定に戻す。
 const searchSchema = z.object({
-  // 1 ページを映す秒数
+  // 1 ページを映す秒数。秒数を自分で決めているボード(boards.ts の interval)には効かない
   interval: z.coerce.number().int().min(3).max(300).default(10).catch(10),
   // 画面に一度に並べる件数。UU-JUMP は、1 ページにこの 2 倍を持たせて、ページの途中で下へ送る
   rows: z.coerce.number().int().min(3).max(20).default(10).catch(10),
@@ -102,6 +102,8 @@ function Signage() {
 
   const board = SIGNAGE_BOARDS[slide.board] ?? SIGNAGE_BOARDS[0];
   useDocumentTheme(board.themeClass);
+  // 1 ページを映す秒数。ボードが決めていれば、そちらを使う
+  const pageSeconds = board.interval ?? interval;
   const pageCount = pageCounts[board.id] ?? 1;
   // 記録が消されてページが減っても、無いページを映さない
   const page = Math.min(slide.page, pageCount - 1);
@@ -144,9 +146,9 @@ function Signage() {
   const advance = useEffectEvent(() => step(1));
   useEffect(() => {
     if (paused) return;
-    const timer = setTimeout(advance, interval * 1000);
+    const timer = setTimeout(advance, pageSeconds * 1000);
     return () => clearTimeout(timer);
-  }, [paused, interval, slide]);
+  }, [paused, pageSeconds, slide]);
 
   const onKeyDown = useEffectEvent((event: KeyboardEvent) => {
     if (event.ctrlKey || event.metaKey || event.altKey) return;
@@ -230,7 +232,7 @@ function Signage() {
           key={board.id}
           page={page}
           rows={rows}
-          interval={interval}
+          interval={pageSeconds}
           paused={paused}
           maxPages={pages}
           onPageCount={reportPageCount}
@@ -252,7 +254,7 @@ function Signage() {
             key={`${slide.board}-${slide.page}`}
             className="h-full origin-left bg-primary"
             style={{
-              animation: `signage-progress ${interval}s linear forwards`,
+              animation: `signage-progress ${pageSeconds}s linear forwards`,
               animationPlayState: paused ? 'paused' : 'running',
             }}
           />

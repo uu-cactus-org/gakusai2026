@@ -30,6 +30,8 @@ export type SignageBoard = {
    * 小さいほど、縦長寄りの画面(iPad など)で文字が大きくなる。列を足したら、ここも増やす
    */
   widthEm: number;
+  /** このボードの 1 ページを映す秒数。決めると、URL の interval より先に使う。無ければ interval のまま */
+  interval?: number;
   /** このボードを映すあいだ、ページ全体に付ける見た目のクラス。無ければ共通の見た目 */
   themeClass?: string;
   /** 画面いっぱいに敷く背景。step はページを送るたびに 1 ずつ増える */
