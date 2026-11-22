@@ -30,7 +30,8 @@ export function SignageScrollRows({
   const overflow = Math.max(0, Math.min(count, slots) - rows);
 
   return (
-    <div className="min-h-0 flex-1 overflow-hidden">
+    // ページを送るときに横へ滑らせる枠(signage-rows)。左右の余白まで広げて、画面の端から出入りさせる
+    <div className="-mx-[1.5em] min-h-0 flex-1 overflow-hidden px-[1.5em] [view-transition-name:signage-rows]">
       <ol
         // 下の余白を行のすき間と同じにして、画面 1 枚ぶんが、ちょうど rows 行とすき間になるようにする
         className="grid gap-y-[0.18em] pb-[0.18em]"

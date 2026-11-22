@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { LastUpdated } from '#/components/last-updated';
 import { SIGNAGE_SCREENS_PER_PAGE, SignageScrollRows } from '#/features/signage/scroll-rows';
@@ -54,6 +54,19 @@ export function UuJumpSignageBoard({
   useEffect(() => {
     if (pageCount !== null) onPageCount(pageCount);
   }, [pageCount, onPageCount]);
+
+  // 次のマップを先に読んでおく。送った瞬間に中身がそろっていないと、滑って入ってくる表が前のマップのままになる
+  const queryClient = useQueryClient();
+  const nextMap =
+    slots && slots.length > 1
+      ? slots[(Math.min(page, slots.length - 1) + 1) % slots.length]?.name
+      : undefined;
+  useEffect(() => {
+    if (nextMap === undefined) return;
+    void queryClient.prefetchQuery(
+      rankingQueryOptions({ map: nextMap, limit: rows * SIGNAGE_SCREENS_PER_PAGE, offset: 0 }),
+    );
+  }, [queryClient, nextMap, rows]);
 
   if (!slots) {
     return <p className="p-[1.5em] text-muted-foreground">読み込んでいます…</p>;

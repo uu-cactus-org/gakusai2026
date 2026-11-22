@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { LastUpdated } from '#/components/last-updated';
 import type { SignageBoardProps } from '#/features/signage/types';
@@ -39,6 +39,14 @@ export function WaterShootingSignageBoard({
     if (pageCount !== null) onPageCount(pageCount);
   }, [pageCount, onPageCount]);
 
+  // 次のページを先に読んでおく。送った瞬間に中身がそろっていないと、滑って入ってくる表が前のページのままになる
+  const queryClient = useQueryClient();
+  const nextPage = pageCount !== null && pageCount > 1 ? (page + 1) % pageCount : null;
+  useEffect(() => {
+    if (nextPage === null) return;
+    void queryClient.prefetchQuery(rankingQueryOptions({ limit: rows, offset: nextPage * rows }));
+  }, [queryClient, nextPage, rows]);
+
   if (!data) {
     return <p className="p-[1.5em] text-muted-foreground">読み込んでいます…</p>;
   }
@@ -64,8 +72,9 @@ export function WaterShootingSignageBoard({
           ),
         )}
       </div>
+      {/* ページを送るときに横へ滑らせる枠(signage-rows)。左右の余白まで広げて、画面の端から出入りさせる */}
       <ol
-        className="grid min-h-0 flex-1 gap-y-[0.18em] pb-[0.2em]"
+        className="-mx-[1.5em] grid min-h-0 flex-1 gap-y-[0.18em] px-[1.5em] pb-[0.2em] [view-transition-name:signage-rows]"
         style={{ gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))` }}
       >
         {data.runs.map((run) => {

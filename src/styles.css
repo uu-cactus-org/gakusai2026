@@ -293,6 +293,38 @@
   }
 }
 
+/* サイネージで、同じゲームの次のページへ送るときに、表の行を横へ滑らせる(View Transitions)。 */
+/* 滑らせるのは signage-rows の名前を付けた枠だけ。ページ全体は写し取らず、背景はそのまま動かしておく */
+:root {
+  view-transition-name: none;
+}
+
+/* 滑って出入りする行を、枠の外では見せない */
+::view-transition-group(signage-rows) {
+  overflow: clip;
+}
+
+::view-transition-old(signage-rows) {
+  animation: 500ms ease-in-out both signage-slide-out;
+}
+
+::view-transition-new(signage-rows) {
+  animation: 500ms ease-in-out both signage-slide-in;
+}
+
+/* --signage-slide-dir は、次へ送るとき 1、前へ戻すとき -1(signage.tsx) */
+@keyframes signage-slide-out {
+  to {
+    transform: translateX(calc(-100% * var(--signage-slide-dir, 1)));
+  }
+}
+
+@keyframes signage-slide-in {
+  from {
+    transform: translateX(calc(100% * var(--signage-slide-dir, 1)));
+  }
+}
+
 /* ドット絵を、拡大してもにじませない */
 .pixelated {
   image-rendering: pixelated;

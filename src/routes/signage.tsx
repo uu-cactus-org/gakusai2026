@@ -2,6 +2,7 @@ import { createFileRoute, stripSearchParams } from '@tanstack/react-router';
 import { Maximize, Pause, Play } from 'lucide-react';
 import { useCallback, useEffect, useEffectEvent, useState } from 'react';
 import type { CSSProperties, MouseEvent } from 'react';
+import { flushSync } from 'react-dom';
 import { z } from 'zod';
 import { Button } from '#/components/ui/button';
 import { SIGNAGE_BOARDS } from '#/features/signage/boards';
@@ -131,15 +132,27 @@ function Signage() {
     if (fadingTo) return;
     const nextPage = page + delta;
     if (nextPage >= 0 && nextPage < pageCount) {
-      setSlide({ board: slide.board, page: nextPage });
+      slideTo({ board: slide.board, page: nextPage }, delta);
       return;
     }
     const nextBoard = (slide.board + delta + SIGNAGE_BOARDS.length) % SIGNAGE_BOARDS.length;
     const nextBoardPages = pageCounts[SIGNAGE_BOARDS[nextBoard]?.id ?? ''] ?? 1;
     const next = { board: nextBoard, page: delta > 0 ? 0 : nextBoardPages - 1 };
     // ボードが 1 つだけなら、同じボードの端へ回るだけなので、幕は下ろさない
-    if (nextBoard === slide.board) setSlide(next);
+    if (nextBoard === slide.board) slideTo(next, delta);
     else setFadingTo(next);
+  };
+
+  // 同じボードの別のページへ移る。表の行を、送る向きへ横に滑らせる(動きは styles.css の signage-slide)。
+  // View Transitions が無いブラウザでは、滑らせずに替える
+  const slideTo = (next: { board: number; page: number }, delta: 1 | -1) => {
+    if (!('startViewTransition' in document)) {
+      setSlide(next);
+      return;
+    }
+    document.documentElement.style.setProperty('--signage-slide-dir', String(delta));
+    // 替えたあとの画面を写し取らせるので、その場で描き直す
+    document.startViewTransition(() => flushSync(() => setSlide(next)));
   };
 
   // 自動送り。手で送ったときも、そこから数え直す

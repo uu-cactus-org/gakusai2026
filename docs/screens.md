@@ -60,6 +60,8 @@
 
 UU-JUMP は、1 ページに `rows` の 2 倍の件数を持たせ、ページの途中で下へ送ります。映す時間の最初の 6 割は一番上で止め、次の 2 割で一番下まで送り、残りの 2 割は一番下で止めます(`interval=5` なら、0〜3 秒は上、3〜4 秒で送り、4〜5 秒は下)。件数が `rows` 以下のページは送りません。WaterShooting は送りません。
 
+同じゲームの次のページへ送るときは、表の行を横へ滑らせます(View Transitions。無いブラウザでは、滑らせずに替えます)。別のゲームへ移るときは、黒い幕を挟みます。
+
 WaterShooting は、`interval` にかかわらず、1 ページを 4 秒で送ります(`boards.ts` の `interval`)。`interval` が効くのは UU-JUMP です。例: `/signage?interval=15&rows=8&pages=2`
 
 ### iPad から 16:9 のモニターへ出す
