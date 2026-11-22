@@ -12,7 +12,7 @@ import { usePageTitle } from '#/lib/use-page-title';
 const searchSchema = z.object({
   // 1 ページを映す秒数
   interval: z.coerce.number().int().min(3).max(300).default(10).catch(10),
-  // 1 ページに並べる件数
+  // 画面に一度に並べる件数。UU-JUMP は、1 ページにこの 2 倍を持たせて、ページの途中で下へ送る
   rows: z.coerce.number().int().min(3).max(20).default(10).catch(10),
   // 1 つのボードで送るページ数の上限(既定は 10 件 × 3 ページで 30 位まで)
   pages: z.coerce.number().int().min(1).max(20).default(3).catch(3),
@@ -230,6 +230,8 @@ function Signage() {
           key={board.id}
           page={page}
           rows={rows}
+          interval={interval}
+          paused={paused}
           maxPages={pages}
           onPageCount={reportPageCount}
         />

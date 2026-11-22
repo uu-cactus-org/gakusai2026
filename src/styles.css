@@ -281,6 +281,18 @@
   }
 }
 
+/* サイネージの表を、ページの途中で下へ送る。最初の 6 割は上で止め、次の 2 割で送り、残りは下で止める */
+@keyframes signage-scroll {
+  0%,
+  60% {
+    transform: translateY(0);
+  }
+  80%,
+  100% {
+    transform: translateY(var(--signage-scroll-to));
+  }
+}
+
 /* ドット絵を、拡大してもにじませない */
 .pixelated {
   image-rendering: pixelated;

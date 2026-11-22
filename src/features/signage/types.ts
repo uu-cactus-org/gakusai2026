@@ -4,8 +4,12 @@ import type { ComponentType } from 'react';
 export type SignageBoardProps = {
   /** 表示するページ(0 始まり) */
   page: number;
-  /** 1 ページに並べる件数 */
+  /** 画面に一度に並べる件数。ボードによっては、1 ページにこの 2 倍までを持たせて、途中で下へ送る(scroll-rows.tsx) */
   rows: number;
+  /** 1 ページを映す秒数 */
+  interval: number;
+  /** 自動送りを止めているか */
+  paused: boolean;
   /** このボードで送るページ数の上限 */
   maxPages: number;
   /** 今あるページ数が分かったら知らせる。サイネージはこの数だけ送ってから次のボードへ進む */

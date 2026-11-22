@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { LastUpdated } from '#/components/last-updated';
+import { SIGNAGE_SCREENS_PER_PAGE, SignageScrollRows } from '#/features/signage/scroll-rows';
 import type { SignageBoardProps } from '#/features/signage/types';
 import { formatRecordedAt } from '#/lib/format';
 import { mapsQueryOptions, rankingQueryOptions } from './ranking';
@@ -28,17 +29,24 @@ export function UuJumpSignageTitle() {
 
 /**
  * サイネージ用の UU-JUMP のランキング。マップを名前の順に、1 マップ 1 ページで映す。
- * マップが数個あり、何ページも送ると一巡が長くなるので、どのマップも上位の 1 ページ(既定で 10 位まで)だけにする。
+ * マップが数個あり、何ページも送ると一巡が長くなるので、どのマップも上位の 1 ページ(既定で 20 位まで)だけにする。
  * サイネージの pages(ボードごとのページ数の上限)は使わない。
  */
-export function UuJumpSignageBoard({ page, rows, onPageCount }: SignageBoardProps) {
+export function UuJumpSignageBoard({
+  page,
+  rows,
+  interval,
+  paused,
+  onPageCount,
+}: SignageBoardProps) {
   const maps = useQuery(mapsQueryOptions);
   const slots = maps.data ?? null;
   // マップが減ってページが減っても、無いページを映さない
   const slot = slots?.[Math.min(page, slots.length - 1)];
 
   const { data, dataUpdatedAt } = useQuery(
-    rankingQueryOptions({ map: slot?.name, limit: rows, offset: 0 }),
+    // 画面には rows 件ずつ並べて、途中で下へ送る
+    rankingQueryOptions({ map: slot?.name, limit: rows * SIGNAGE_SCREENS_PER_PAGE, offset: 0 }),
   );
 
   // 記録が無いあいだも、1 ページとして映す
@@ -73,9 +81,13 @@ export function UuJumpSignageBoard({ page, rows, onPageCount }: SignageBoardProp
           </span>
         ))}
       </div>
-      <ol
-        className="grid min-h-0 flex-1 gap-y-[0.18em] pb-[0.2em]"
-        style={{ gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))` }}
+      {/* key を変えて、マップを送るたびに一番上から動かす */}
+      <SignageScrollRows
+        key={slot.name}
+        rows={rows}
+        count={data.runs.length}
+        interval={interval}
+        paused={paused}
       >
         {data.runs.map((run) => {
           const tint = medalTint(run.rank);
@@ -107,7 +119,7 @@ export function UuJumpSignageBoard({ page, rows, onPageCount }: SignageBoardProp
             </li>
           );
         })}
-      </ol>
+      </SignageScrollRows>
       {/* 画面の右下の隅に小さく出す(サイネージの画面全体が基準)。ページの点と同じ高さ */}
       <LastUpdated
         updatedAt={dataUpdatedAt}
