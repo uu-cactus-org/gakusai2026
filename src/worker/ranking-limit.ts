@@ -1,4 +1,6 @@
+import type { Context } from 'hono';
 import { createMiddleware } from 'hono/factory';
+import { HTTPException } from 'hono/http-exception';
 import { loginLimitKey } from './games';
 
 /**
@@ -16,14 +18,32 @@ import { loginLimitKey } from './games';
  * 数え方はおおよそで、厳密ではない(Cloudflare の拠点ごとに数える)。
  */
 export const limitRankingReads = createMiddleware<{ Bindings: Env }>(async (c, next) => {
+  if (!(await rankingReadAllowed(c))) return tooManyRankingReads(c);
+  await next();
+});
+
+/** D1 を 1 回読んでよいか。読む直前に呼ぶ(呼ぶたびに 1 回と数える)。 */
+export async function rankingReadAllowed(c: Context<{ Bindings: Env }>): Promise<boolean> {
   const client = await c.env.RANKING_CLIENT_LIMIT.limit({
     key: loginLimitKey(c.req.header('CF-Connecting-IP')),
   });
   // 送信元ごとの制限で断った分は、全体の回数に数えない
   const all = client.success ? await c.env.RANKING_TOTAL_LIMIT.limit({ key: 'all' }) : client;
-  if (!all.success) {
-    c.header('Retry-After', '60');
-    return c.json({ error: '取得の回数が多すぎます。1 分ほど待ってください' }, 429);
+  return all.success;
+}
+
+/** 回数を超えたときの応答。 */
+export function tooManyRankingReads(c: Context<{ Bindings: Env }>) {
+  c.header('Retry-After', '60');
+  return c.json({ error: '取得の回数が多すぎます。1 分ほど待ってください' }, 429);
+}
+
+/**
+ * D1 を読む処理の先頭で呼ぶ。回数を超えていたら、429 の応答を投げて、読ませない。
+ * キャッシュに無くて D1 を読むときだけ数えたい経路(cachedData の load の中)で使う。
+ */
+export async function assertRankingReadAllowed(c: Context<{ Bindings: Env }>): Promise<void> {
+  if (!(await rankingReadAllowed(c))) {
+    throw new HTTPException(429, { res: tooManyRankingReads(c) });
   }
-  await next();
-});
+}

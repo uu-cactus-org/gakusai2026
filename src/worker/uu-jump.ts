@@ -1,13 +1,14 @@
 import { zValidator } from '@hono/zod-validator';
-import { and, asc, count, desc, eq, lt, or, sql } from 'drizzle-orm';
+import { and, count, eq, lt, or } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
+import type { Context } from 'hono';
 import { z } from 'zod';
 import { requireGame } from './auth';
-import { edgeCache } from './cache';
+import { cachedData, dropCachedData, edgeCache } from './cache';
 import { devices, uuJumpRuns as runs } from './db/schema';
 import { registerDevice } from './devices';
-import { limitRankingReads } from './ranking-limit';
+import { assertRankingReadAllowed } from './ranking-limit';
 import { PLAY_BUCKET_SECONDS, STATS_CACHE_SECONDS, playBuckets } from './stats';
 
 // 値の範囲は、ゲームの仕様変更で当日の記録が落ちないよう広めに取る。明らかに壊れた値だけ弾く。
@@ -23,9 +24,9 @@ const runSchema = z.object({
 // 並べ替えに使える項目
 const SORT_KEYS = ['clearSeconds', 'jumpCount', 'createdAt'] as const;
 
-// ランキングとマップの一覧の応答をキャッシュに置く秒数。
-// サイネージは 30 秒ほどで一巡して同じページへ戻ってくるので、それより長く置かないと、毎回 D1 を読むことになる
-const RANKING_CACHE_SECONDS = 60;
+// ランキングとマップの一覧の元になる全部の記録を、キャッシュに置く秒数。D1 を読むのは、この秒数に 1 回になる。
+// 記録が増えたときは捨てて読み直すので、新しい記録が出るのは遅れない(PC の名前の変更や、記録の削除は、この秒数だけ遅れる)
+const RANKING_CACHE_SECONDS = 30;
 
 const rankingQuerySchema = z.object({
   // どのマップのランキングか。マップをまたいだ順位は意味がないので、必ず指定する
@@ -96,20 +97,25 @@ export const uuJumpApp = new Hono<{ Bindings: Env }>()
 
     const [run] = await db.select().from(runs).where(eq(runs.runId, body.runId));
     if (!run) return c.json({ error: '記録に失敗しました' }, 500);
+    // 新しい記録が、ランキングにすぐ出るようにする
+    if (inserted.length > 0) await dropCachedData(c, RUNS_CACHE_NAME);
 
     const [rank, total] = await Promise.all([rankOf(db, run), totalRanked(db, run.mapName)]);
     return c.json({ id: run.id, rank, total, test: run.isTest }, inserted.length > 0 ? 201 : 200);
   })
   // 記録があるマップの一覧。画面のマップの切り替えに使う。テストの記録だけのマップは出さない。
-  .get('/maps', edgeCache(RANKING_CACHE_SECONDS, []), async (c) => {
-    const db = drizzle(c.env.DB);
-    const rows = await db
-      .select({ name: runs.mapName, count: count() })
-      .from(runs)
-      .where(eq(runs.isTest, false))
-      .groupBy(runs.mapName)
-      .orderBy(asc(runs.mapName));
-    return c.json({ maps: rows });
+  .get('/maps', async (c) => {
+    // ブラウザには残させない
+    c.header('Cache-Control', 'no-store');
+    const counts = new Map<string, number>();
+    for (const run of await allRuns(c)) {
+      if (!run.test) counts.set(run.mapName, (counts.get(run.mapName) ?? 0) + 1);
+    }
+    const maps = [...counts]
+      .map(([name, count]) => ({ name, count }))
+      // SQL の並び(文字コードの順)と同じにする
+      .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+    return c.json({ maps });
   })
   // 10 分ごとのプレイ数。統計の画面のグラフに使う。
   .get('/stats', edgeCache(STATS_CACHE_SECONDS, []), async (c) => {
@@ -117,58 +123,69 @@ export const uuJumpApp = new Hono<{ Bindings: Env }>()
     return c.json({ bucketSeconds: PLAY_BUCKET_SECONDS, buckets });
   })
   // マップごとのランキング。既定はクリアまでが短い順。
-  .get(
-    '/ranking',
-    edgeCache(RANKING_CACHE_SECONDS, Object.keys(rankingQuerySchema.shape)),
-    zValidator('query', rankingQuerySchema),
-    limitRankingReads,
-    async (c) => {
-      const db = drizzle(c.env.DB);
-      const query = c.req.valid('query');
+  // D1 は毎回読まない。全部の記録を数十秒に 1 回だけ読んで置いておき、順位・並べ替え・ページ送りはここでやる
+  .get('/ranking', zValidator('query', rankingQuerySchema), async (c) => {
+    const query = c.req.valid('query');
+    // ブラウザには残させない
+    c.header('Cache-Control', 'no-store');
 
-      const where = and(
-        eq(runs.mapName, query.map),
-        query.includeTest === '1' ? undefined : eq(runs.isTest, false),
-      );
+    // 順位は、そのマップでのタイム順(同じタイムは先に記録したほうが上)。
+    // 並べ替えやページ送りをしても変わらないよう、先に全体へ順位を振ってから並べ替える。
+    const ranked = (await allRuns(c))
+      .filter((run) => run.mapName === query.map && (query.includeTest === '1' || !run.test))
+      .sort((a, b) => a.clearSeconds - b.clearSeconds || a.id - b.id)
+      .map((run, i) => ({ rank: i + 1, ...run }));
 
-      // 順位は、そのマップでのタイム順(同じタイムは先に記録したほうが上)。
-      // 並べ替えやページ送りをしても変わらないよう、先に全体へ順位を振ってから並べ替える。
-      const ranked = db
-        .select({
-          rank: sql<number>`row_number() over (order by ${runs.clearSeconds} asc, ${runs.id} asc)`.as(
-            'rank',
-          ),
-          id: runs.id,
-          mapName: runs.mapName,
-          clearSeconds: runs.clearSeconds,
-          jumpCount: runs.jumpCount,
-          test: runs.isTest,
-          deviceName: devices.displayName,
-          createdAt: runs.createdAt,
-        })
-        .from(runs)
-        .innerJoin(devices, eq(runs.deviceId, devices.id))
-        .where(where)
-        .as('ranked');
+    // 記録した時刻は秒までしか持たないので、記録順は id で並べる(id は記録した順に増える)
+    const sorted =
+      query.sort === 'createdAt'
+        ? [...ranked].sort((a, b) => b.id - a.id)
+        : query.sort === 'jumpCount'
+          ? [...ranked].sort((a, b) => a.jumpCount - b.jumpCount || a.rank - b.rank)
+          : ranked;
 
-      // 記録した時刻は秒までしか持たないので、記録順は id で並べる(id は記録した順に増える)
-      const orderBy =
-        query.sort === 'createdAt'
-          ? [desc(ranked.id)]
-          : query.sort === 'jumpCount'
-            ? [asc(ranked.jumpCount), asc(ranked.rank)]
-            : [asc(ranked.rank)];
+    return c.json({
+      total: ranked.length,
+      runs: sorted.slice(query.offset, query.offset + query.limit),
+    });
+  });
 
-      const [rows, [totalRow]] = await Promise.all([
-        db
-          .select()
-          .from(ranked)
-          .orderBy(...orderBy)
-          .limit(query.limit)
-          .offset(query.offset),
-        db.select({ total: count() }).from(runs).where(where),
-      ]);
+// ランキングとマップの一覧の元になる、全部の記録を置くキャッシュの名前
+const RUNS_CACHE_NAME = 'uu-jump/runs';
 
-      return c.json({ total: totalRow?.total ?? 0, runs: rows });
-    },
-  );
+/** 全部の記録。キャッシュにあればそれを使い、無いときだけ D1 を読む(読む回数は、ranking-limit.ts で抑える)。 */
+function allRuns(c: Context<{ Bindings: Env }>) {
+  return cachedData(c, RUNS_CACHE_NAME, RANKING_CACHE_SECONDS, async () => {
+    await assertRankingReadAllowed(c);
+    return loadRuns(drizzle(c.env.DB));
+  });
+}
+
+/**
+ * ランキングに出す形にした、全部のマップの全部の記録(テストの記録も含む)。D1 を読むのは、行の数 + PC の数だけ。
+ * SQL で順位を振ったり PC の名前を結合したりすると、同じ行を何度も読んで、読み取りの行数が数倍になる。
+ */
+async function loadRuns(db: DB) {
+  const [rows, deviceRows] = await Promise.all([
+    db
+      .select({
+        id: runs.id,
+        deviceId: runs.deviceId,
+        mapName: runs.mapName,
+        clearSeconds: runs.clearSeconds,
+        jumpCount: runs.jumpCount,
+        test: runs.isTest,
+        createdAt: runs.createdAt,
+      })
+      .from(runs),
+    db.select({ id: devices.id, displayName: devices.displayName }).from(devices),
+  ]);
+  const deviceNames = new Map(deviceRows.map((device) => [device.id, device.displayName]));
+  return rows.flatMap(({ deviceId, createdAt, ...run }) => {
+    const deviceName = deviceNames.get(deviceId);
+    // 登録の無い PC の記録は出さない(外部キーがあるので、実際には起きない)
+    if (deviceName === undefined) return [];
+    // キャッシュに置くと JSON を通るので、時刻は先に文字列にしておく
+    return [{ ...run, deviceName, createdAt: createdAt.toISOString() }];
+  });
+}

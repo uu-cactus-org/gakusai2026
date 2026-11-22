@@ -1,13 +1,13 @@
 import { zValidator } from '@hono/zod-validator';
-import { and, asc, count, desc, eq, gt, lt, or, sql } from 'drizzle-orm';
+import { and, count, eq, gt, lt, or } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { requireGame } from './auth';
-import { edgeCache } from './cache';
+import { cachedData, dropCachedData, edgeCache } from './cache';
 import { devices, waterShootingRuns as runs } from './db/schema';
 import { registerDevice } from './devices';
-import { limitRankingReads } from './ranking-limit';
+import { assertRankingReadAllowed } from './ranking-limit';
 import { PLAY_BUCKET_SECONDS, STATS_CACHE_SECONDS, playBuckets } from './stats';
 
 // 値の範囲は、ゲームの仕様変更で当日の記録が落ちないよう広めに取る。明らかに壊れた値だけ弾く。
@@ -28,9 +28,9 @@ const runSchema = z.object({
 // 並べ替えに使える項目
 const SORT_KEYS = ['score', 'baseScore', 'playSeconds', 'reachedStage', 'createdAt'] as const;
 
-// ランキングの応答をキャッシュに置く秒数。
-// サイネージは 30 秒ほどで一巡して同じページへ戻ってくるので、それより長く置かないと、毎回 D1 を読むことになる
-const RANKING_CACHE_SECONDS = 60;
+// ランキングの元になる全部の記録を、キャッシュに置く秒数。D1 を読むのは、この秒数に 1 回になる。
+// 記録が増えたときは捨てて読み直すので、新しい記録が出るのは遅れない(PC の名前の変更や、記録の削除は、この秒数だけ遅れる)
+const RANKING_CACHE_SECONDS = 30;
 
 const rankingQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
@@ -99,6 +99,8 @@ export const waterShootingApp = new Hono<{ Bindings: Env }>()
 
     const [run] = await db.select().from(runs).where(eq(runs.runId, body.runId));
     if (!run) return c.json({ error: '記録に失敗しました' }, 500);
+    // 新しい記録が、ランキングにすぐ出るようにする
+    if (inserted.length > 0) await dropCachedData(c, RUNS_CACHE_NAME);
 
     const [rank, total] = await Promise.all([rankOf(db, run), totalRanked(db)]);
     return c.json({ id: run.id, rank, total, test: run.isTest }, inserted.length > 0 ? 201 : 200);
@@ -109,64 +111,79 @@ export const waterShootingApp = new Hono<{ Bindings: Env }>()
     return c.json({ bucketSeconds: PLAY_BUCKET_SECONDS, buckets });
   })
   // ランキング。既定はスコアが高い順。並べ替えと絞り込みができる。
-  .get(
-    '/ranking',
-    edgeCache(RANKING_CACHE_SECONDS, Object.keys(rankingQuerySchema.shape)),
-    zValidator('query', rankingQuerySchema),
-    limitRankingReads,
-    async (c) => {
-      const db = drizzle(c.env.DB);
-      const query = c.req.valid('query');
+  // D1 は毎回読まない。全部の記録を数十秒に 1 回だけ読んで置いておき、順位・絞り込み・並べ替え・ページ送りはここでやる
+  .get('/ranking', zValidator('query', rankingQuerySchema), async (c) => {
+    const query = c.req.valid('query');
+    // ブラウザには残させない
+    c.header('Cache-Control', 'no-store');
+    const all = await cachedData(c, RUNS_CACHE_NAME, RANKING_CACHE_SECONDS, async () => {
+      await assertRankingReadAllowed(c);
+      return loadRuns(drizzle(c.env.DB));
+    });
 
-      const where = and(
-        query.includeTest === '1' ? undefined : eq(runs.isTest, false),
-        query.difficulty ? eq(runs.difficulty, query.difficulty) : undefined,
-        query.player ? eq(runs.player, query.player) : undefined,
-        query.result ? eq(runs.result, query.result) : undefined,
-      );
+    // 順位は、絞り込んだ記録の中でのスコア順(同点は先に記録したほうが上)。
+    // 並べ替えやページ送りをしても変わらないよう、先に全体へ順位を振ってから並べ替える。
+    const ranked = all
+      .filter(
+        (run) =>
+          (query.includeTest === '1' || !run.test) &&
+          (!query.difficulty || run.difficulty === query.difficulty) &&
+          (!query.player || run.player === query.player) &&
+          (!query.result || run.result === query.result),
+      )
+      .sort((a, b) => b.score - a.score || a.id - b.id)
+      .map((run, i) => ({ rank: i + 1, ...run }));
 
-      // 順位は、絞り込んだ記録の中でのスコア順(同点は先に記録したほうが上)。
-      // 並べ替えやページ送りをしても変わらないよう、先に全体へ順位を振ってから並べ替える。
-      const ranked = db
-        .select({
-          rank: sql<number>`row_number() over (order by ${runs.score} desc, ${runs.id} asc)`.as(
-            'rank',
-          ),
-          id: runs.id,
-          score: runs.score,
-          baseScore: runs.baseScore,
-          result: runs.result,
-          difficulty: runs.difficulty,
-          player: runs.player,
-          playSeconds: runs.playSeconds,
-          reachedStage: runs.reachedStage,
-          totalStages: runs.totalStages,
-          test: runs.isTest,
-          deviceName: devices.displayName,
-          createdAt: runs.createdAt,
-        })
-        .from(runs)
-        .innerJoin(devices, eq(runs.deviceId, devices.id))
-        .where(where)
-        .as('ranked');
+    const sign =
+      (query.order ?? (query.sort === 'playSeconds' ? 'asc' : 'desc')) === 'asc' ? 1 : -1;
+    // 記録した時刻は秒までしか持たないので、記録順は id で並べる(id は記録した順に増える)
+    const sortKey = query.sort === 'createdAt' ? 'id' : query.sort;
+    const sorted =
+      // スコアの高い順は、順位の順そのまま
+      query.sort === 'score' && sign === -1
+        ? ranked
+        : // 同じ値どうしは順位の順に並べる
+          [...ranked].sort((a, b) => sign * (a[sortKey] - b[sortKey]) || a.rank - b.rank);
 
-      const direction =
-        (query.order ?? (query.sort === 'playSeconds' ? 'asc' : 'desc')) === 'asc' ? asc : desc;
+    return c.json({
+      total: ranked.length,
+      runs: sorted.slice(query.offset, query.offset + query.limit),
+    });
+  });
 
-      // 記録した時刻は秒までしか持たないので、記録順は id で並べる(id は記録した順に増える)
-      const sortColumn = query.sort === 'createdAt' ? ranked.id : ranked[query.sort];
+// ランキングの元になる、全部の記録を置くキャッシュの名前
+const RUNS_CACHE_NAME = 'water-shooting/runs';
 
-      const [rows, [totalRow]] = await Promise.all([
-        db
-          .select()
-          .from(ranked)
-          // 同じ値どうしは順位の順に並べる
-          .orderBy(direction(sortColumn), asc(ranked.rank))
-          .limit(query.limit)
-          .offset(query.offset),
-        db.select({ total: count() }).from(runs).where(where),
-      ]);
-
-      return c.json({ total: totalRow?.total ?? 0, runs: rows });
-    },
-  );
+/**
+ * ランキングに出す形にした、全部の記録(テストの記録も含む)。D1 を読むのは、行の数 + PC の数だけ。
+ * SQL で順位を振ったり PC の名前を結合したりすると、同じ行を何度も読んで、読み取りの行数が数倍になる。
+ */
+async function loadRuns(db: DB) {
+  const [rows, deviceRows] = await Promise.all([
+    db
+      .select({
+        id: runs.id,
+        deviceId: runs.deviceId,
+        score: runs.score,
+        baseScore: runs.baseScore,
+        result: runs.result,
+        difficulty: runs.difficulty,
+        player: runs.player,
+        playSeconds: runs.playSeconds,
+        reachedStage: runs.reachedStage,
+        totalStages: runs.totalStages,
+        test: runs.isTest,
+        createdAt: runs.createdAt,
+      })
+      .from(runs),
+    db.select({ id: devices.id, displayName: devices.displayName }).from(devices),
+  ]);
+  const deviceNames = new Map(deviceRows.map((device) => [device.id, device.displayName]));
+  return rows.flatMap(({ deviceId, createdAt, ...run }) => {
+    const deviceName = deviceNames.get(deviceId);
+    // 登録の無い PC の記録は出さない(外部キーがあるので、実際には起きない)
+    if (deviceName === undefined) return [];
+    // キャッシュに置くと JSON を通るので、時刻は先に文字列にしておく
+    return [{ ...run, deviceName, createdAt: createdAt.toISOString() }];
+  });
+}
